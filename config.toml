@@ -1,0 +1,34 @@
+baseURL = "https://zygoo.github.io/"
+languageCode = 'zh-hans'
+title = "Zygoo's Blog"
+theme = "hermit"
+staticDir = ["static", "content-static"]
+
+[params]
+  dateform        = "Jan 2, 2006"
+  dateformShort   = "Jan 2"
+  dateformNum     = "2006-01-02"
+  dateformNumTime = "2006-01-02 15:04"
+  homeSubtitle = "Logging And Tracing"
+
+  [[params.social]]
+      name = "github"
+      url = "https://github.com/zygoo"
+
+[menu]
+  [[menu.main]]
+    name = "Posts"
+    url = "/posts/"
+    weight = 10
+
+  [[menu.main]]
+    name = "Tags"
+    url = "/tags/"
+    weight = 20
+
+  [[menu.main]]
+    name = "About"
+    url = "/about/"
+    weight = 30
+
+

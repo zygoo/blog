@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zygoo&#39;s Blog</title>
+    <link>https://zygoo.github.io/</link>
+    <description>Recent content on Zygoo&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-hans</language>
+    <lastBuildDate>Tue, 24 Aug 2021 12:18:09 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>My First Post</title>
+      <link>https://zygoo.github.io/posts/life/my-first-post/</link>
+      <pubDate>Tue, 24 Aug 2021 12:18:09 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/life/my-first-post/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>rabbit mq的基本概念</title>
+      <link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</link>
+      <pubDate>Tue, 24 Aug 2021 12:18:09 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>https://zygoo.github.io/about/</link>
+      <pubDate>Tue, 24 Aug 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://zygoo.github.io/about/</guid>
+      <description>你好，我是zygoo</description>
+    </item>
+    
+  </channel>
+</rss>
