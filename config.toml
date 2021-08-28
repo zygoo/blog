@@ -2,6 +2,7 @@ baseURL = "https://zygoo.github.io/"
 languageCode = 'zh-hans'
 title = "Zygoo's Blog"
 theme = "hermit"
+hasCJKLanguage = true
 staticDir = ["static", "content-static"]
 
 [params]

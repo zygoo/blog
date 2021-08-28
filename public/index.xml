@@ -13,7 +13,7 @@
       <pubDate>Fri, 27 Aug 2021 12:18:09 +0800</pubDate>
       
       <guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</guid>
-      <description>Rabbit MQ的核心概念 生产者: 发送消息的应用 消费者: 接受消息的应用 exchange: 将消息路由到queue的组件 queue: 存储信息的缓存区，消费者对接的是queue, 并不</description>
+      <description>Rabbit MQ的核心概念  生产者: 发送消息的应用 消费者: 接受消息的应用 exchange: 将消息路由到queue的组件 queue: 存储信息的缓存区，消费者对接的是queue, 并不关心别的配置项  Rabbit MQ的信息流  生产者向exchange发送消息 exchange根据消息属性路由到queue中进行存储 消费者从queue拉取消息进行消费  </description>
     </item>
     
     <item>

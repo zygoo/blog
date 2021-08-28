@@ -1,0 +1,46 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+	<channel>
+		<title>Posts on Zygoo&#39;s Blog</title>
+		<link>https://zygoo.github.io/posts/</link>
+		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
+		<generator>Hugo -- gohugo.io</generator>
+		<language>zh-hans</language>
+		<lastBuildDate>Fri, 27 Aug 2021 12:18:09 +0800</lastBuildDate>
+		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>聊一聊Rabbit MQ的基本原理</title>
+			<link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</link>
+			<pubDate>Fri, 27 Aug 2021 12:18:09 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</guid>
+			<description>Rabbit MQ的核心概念  生产者: 发送消息的应用 消费者: 接受消息的应用 exchange: 将消息路由到queue的组件 queue: 存储信息的缓存区，消费者对接的是queue, 并不关心别的配置项  Rabbit MQ的信息流  生产者向exchange发送消息 exchange根据消息属性路由到queue中进行存储 消费者从queue拉取消息进行消费  </description>
+			<content type="html"><![CDATA[<h2 id="rabbit-mq的核心概念">Rabbit MQ的核心概念</h2>
+<ul>
+<li>生产者: 发送消息的应用</li>
+<li>消费者: 接受消息的应用</li>
+<li>exchange: 将消息路由到queue的组件</li>
+<li>queue: 存储信息的缓存区，消费者对接的是queue, 并不关心别的配置项</li>
+</ul>
+<h2 id="rabbit-mq的信息流">Rabbit MQ的信息流</h2>
+<ol>
+<li>生产者向exchange发送消息</li>
+<li>exchange根据消息属性路由到queue中进行存储</li>
+<li>消费者从queue拉取消息进行消费</li>
+</ol>
+<p><img src="/img/rabbitmq%E4%BF%A1%E6%81%AF%E6%B5%81.png" alt=""></p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>My First Post</title>
+			<link>https://zygoo.github.io/posts/life/my-first-post/</link>
+			<pubDate>Tue, 24 Aug 2021 12:18:09 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/life/my-first-post/</guid>
+			<description></description>
+			<content type="html"><![CDATA[]]></content>
+		</item>
+		
+	</channel>
+</rss>
