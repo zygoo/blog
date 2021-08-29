@@ -6,14 +6,23 @@
     <description>Recent content in mq on Zygoo&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
-    <lastBuildDate>Fri, 27 Aug 2021 12:18:09 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/tags/mq/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 29 Aug 2021 11:18:09 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/tags/mq/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>聊一聊Rabbit MQ的基本原理</title>
+      <title>RabbitMQ进阶使用: 多消费者的worker模式</title>
+      <link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_worker_mode/</link>
+      <pubDate>Sun, 29 Aug 2021 11:18:09 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_worker_mode/</guid>
+      <description>项目中遇到的问题 在现有的项目架构中，我们希望使用RabbitMQ实现多个消费者同时接受同一个队列的消息。使用过RocketMQ的朋友应该都知</description>
+    </item>
+    
+    <item>
+      <title>聊一聊RabbitMQ的基本原理</title>
       <link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</link>
       <pubDate>Fri, 27 Aug 2021 12:18:09 +0800</pubDate>
       
       <guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq-base-concept/</guid>
-      <description>Rabbit MQ的核心概念 生产者: 发送消息的应用 消费者: 接受消息的应用 exchange: 将消息路由到queue的组件 queue: 存储信息的缓存区，消费者对接的是queue, 并不</description>
+      <description>RabbitMQ的核心概念 生产者: 发送消息的应用 消费者: 接受消息的应用 exchange: 将消息路由到queue的组件 queue: 存储信息的缓存区，消费者对接的是que</description>
     </item>
     
   </channel>

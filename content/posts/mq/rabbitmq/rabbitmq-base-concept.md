@@ -1,5 +1,5 @@
 ---
-title: "聊一聊Rabbit MQ的基本原理"
+title: "聊一聊RabbitMQ的基本原理"
 date: 2021-08-27T12:18:09+08:00
 draft: false
 toc: true
@@ -8,13 +8,13 @@ tags:
 - mq
 ---
 
-## Rabbit MQ的核心概念
+## RabbitMQ的核心概念
 * 生产者: 发送消息的应用
 * 消费者: 接受消息的应用
 * exchange: 将消息路由到queue的组件
 * queue: 存储信息的缓存区，消费者对接的是queue, 并不关心别的配置项
 
-## Rabbit MQ信息流
+## RabbitMQ信息流
 1. 生产者向exchange发送消息
 2. exchange根据消息属性路由到queue中进行存储
 3. 消费者从queue拉取消息进行消费
@@ -22,7 +22,7 @@ tags:
 ![](/img/rabbitmq信息流.png)
 
 ## Exchange的基本的概念
-生产者向Rabbit MQ发送消息时，消息不会直接到达Queue, 而是先到达Exchange。Exchange将消息路由到一个或者多个Queue中。Exchange根据Binding Key，Routing Key以及Headers属性路由消息，下面我们来介绍三种常见的Exchange:
+生产者向RabbitMQ发送消息时，消息不会直接到达Queue, 而是先到达Exchange。Exchange将消息路由到一个或者多个Queue中。Exchange根据Binding Key，Routing Key以及Headers属性路由消息，下面我们来介绍三种常见的Exchange:
 * Direct Exchange
 * Topic Exchange
 * Fanout Exchange
@@ -56,7 +56,7 @@ connection就是物理连接，connection会将应用与消息队列连接在一
 * producer和consumer分别使用不同的connection进行消息发送和消费
 
 ### 到底什么是Channel?
-当我们去搜索RabbitMQ概念的时候，几乎所有的文章都会告诉我们，channel是一个virtual connection, 仅此而已。所以这个问题也困扰了我很久。
+当我们去搜索RabbitMQ概念的时候，几乎所有的文章都会告诉我们，channel是一个virtual connection, 仅此而已。那到底什么是channel? 答案还是很抽象，这个问题困扰了我很久。
 
 直到有一天，我在看http2.0的多路复用的时候，终于找到了对这个问题的简单回答，这种发现答案的方式令人兴奋。入行的这几年，我一直都在寻找成为合格程序员的入门法则（没办法，底子太薄了，脑子也不是太好使）。看了很多博客，公众号，知乎等等，方法论多如牛毛，令我印象深刻的总结有两个：
 1. 程序员要构建完整的计算机知识体系，不要一叶障目，不见森林。很多时候，我们可能会钻技术的牛角尖，比如说偏僻的语法糖，极致的封装，这种炫技一般的代码反而会加大后期维护的难度。跳出这种局限性，从网络，os, 数据库，分布式，微服务等更全面的角度去设计架构，这才是可行之道
