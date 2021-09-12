@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="base64编码后出现换行符？">
+<meta itemprop="description" content="在开发的过程中，遇到一个很神奇的问题，就是对一段二进制文件进行base64 encode之后，竟然出现了换行符。趁着这个机会，对base64做"><meta itemprop="datePublished" content="2021-09-07T10:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-09-07T10:18:06+08:00" />
+<meta itemprop="wordCount" content="1303">
+<meta itemprop="keywords" content="os," /><meta property="og:title" content="base64编码后出现换行符？" />
+<meta property="og:description" content="在开发的过程中，遇到一个很神奇的问题，就是对一段二进制文件进行base64 encode之后，竟然出现了换行符。趁着这个机会，对base64做" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/base/base64/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-09-07T10:18:06+08:00" />
+<meta property="article:modified_time" content="2021-09-07T10:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="base64编码后出现换行符？"/>
+<meta name="twitter:description" content="在开发的过程中，遇到一个很神奇的问题，就是对一段二进制文件进行base64 encode之后，竟然出现了换行符。趁着这个机会，对base64做"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>base64编码后出现换行符？</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 7, 2021</span></div>
+				<h1>base64编码后出现换行符？</h1>
+			</header>
+			<div class="content">
+				<p>在开发的过程中，遇到一个很神奇的问题，就是对一段二进制文件进行base64 encode之后，竟然出现了换行符。趁着这个机会，对base64做一下总结。</p>
+<h2 id="base64基本原理">base64基本原理<a href="#base64基本原理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Base64的加密方式是将三个8位的字节转化为四个6位的字节，不足8位的高位补0，3 * 8 = 4 * 6 ，所以经过base6加密的字符串大约比要比未加密的字符串要大三分之一。</p>
+<p>因为Base64有效位只有六位，所以最大能表示的字符就为2的6次方64。大小写的字母26*2 + 10个数字 + 两个特殊符号 + /, 一共64个字符。</p>
+<p>举个例子，我们对&quot;ace&quot;进行加密：</p>
+<pre><code class="language-cgo" data-lang="cgo">ace转化为二进制为：‭01100001‬ ‭01100011‬ ‭01100101‬
+转化为base64的四字节六位：011000 01‬‭0110 0011‬01 100101‬
+那因为计算机是一字节八位的存数，所以高位补00后变为：00011000 0001‬‭0110 000011‬01 00100101‬
+转化为十进制：24 22 13 37
+</code></pre><p>通过查表，我们得到最终结果：YWNl</p>
+<h2 id="在base64结尾加等号">在base64结尾加等号<a href="#在base64结尾加等号" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>例子中为了方便演示我只取了三个字节的字符串，实际中会存在字节数量不是3倍数的情况。将原ASCII码(每个字符8位)转换为转换为base编码字符，会存在两种情况：</p>
+<ol>
+<li>剩余一个ASCII码，余数为1，这时候添加两个等号，因为一个8位的字符至少可以变成两个6位的base64字符，可以补满4个base64字节</li>
+<li>当余数为2时，只需要添加一个等号，因为两8位的字符至少可以变成三个6位的base64字符</li>
+</ol>
+<h2 id="url-encode-and-decode">url encode and decode<a href="#url-encode-and-decode" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>标准的Base64并不适合直接放在URL里传输，因为URL编码器会把标准Base64中的“/”和“+”字符变为形如“%XX”的形式，而这些“%”号在存入数据库时还需要再进行转换，因为ANSI SQL中已将“%”号用作通配符。</p>
+<p>为解决此问题，可采用一种用于URL的改进Base64编码，</p>
+<ol>
+<li>在标准Base64中的“+”和“/”分别改成了“-”和“_”</li>
+<li>在末尾去掉填充的=号，去掉=号的encode称为URL-Safe-Base64, 如果没有去掉&quot;=&quot;， 就只是URL-Base64而已</li>
+<li>golang是强类型语言，URL-Safe-Base64和URL-Base64的使用是严格区分的。比如像ruby这种弱类型语言，其底层库会兼容这两种URL-encode的方式</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;encoding/base64&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64UrlSafeEncode</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">RawURLEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">s</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64UrlSafeEncode</span>(<span style="color:#a6e22e">src</span> []<span style="color:#66d9ef">byte</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">RawURLEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">src</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64Encode</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">s</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64Decode</span>(<span style="color:#a6e22e">src</span> []<span style="color:#66d9ef">byte</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">RawURLEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">src</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+</code></pre></div><h2 id="编码后出现换行符">编码后出现换行符<a href="#编码后出现换行符" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>刚开始出现这个问题，也是比较懵逼，查询一些资料，得出的初步结论是：根据RPC822规定，base64 encode每编码76个字符，需要加上一个换行符，这些回答者都是java的开发者，说明可能部分base64编码的java库还按照这个标准执行。</p>
+<p>ruby和golang并没有执行RPC822标准，ruby中每编码60个字符就要加上一个换行符，而golang的标准库干脆就不加换行符。</p>
+<p>那服务间调用岂不是会出错？其实不会，这些标准库都会对换行符进行预处理，这个结论基本符合我们现在服务间数据交互的情况。</p>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/os">os</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1303 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-09-07 10:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#base64基本原理">base64基本原理</a></li>
+    <li><a href="#在base64结尾加等号">在base64结尾加等号</a></li>
+    <li><a href="#url-encode-and-decode">url encode and decode</a></li>
+    <li><a href="#编码后出现换行符">编码后出现换行符</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://zygoo.github.io/posts/golang/cgo/cgo-advanced/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Cgo的进阶使用</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>

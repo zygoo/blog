@@ -5,8 +5,494 @@
 		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
 		<generator>Hugo -- gohugo.io</generator>
 		<language>zh-hans</language>
-		<lastBuildDate>Sun, 29 Aug 2021 11:18:09 +0800</lastBuildDate>
+		<lastBuildDate>Tue, 07 Sep 2021 10:18:06 +0800</lastBuildDate>
 		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>base64编码后出现换行符？</title>
+			<link>https://zygoo.github.io/posts/base/base64/</link>
+			<pubDate>Tue, 07 Sep 2021 10:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/base/base64/</guid>
+			<description>在开发的过程中，遇到一个很神奇的问题，就是对一段二进制文件进行base64 encode之后，竟然出现了换行符。趁着这个机会，对base64做</description>
+			<content type="html"><![CDATA[<p>在开发的过程中，遇到一个很神奇的问题，就是对一段二进制文件进行base64 encode之后，竟然出现了换行符。趁着这个机会，对base64做一下总结。</p>
+<h2 id="base64基本原理">base64基本原理</h2>
+<p>Base64的加密方式是将三个8位的字节转化为四个6位的字节，不足8位的高位补0，3 * 8 = 4 * 6 ，所以经过base6加密的字符串大约比要比未加密的字符串要大三分之一。</p>
+<p>因为Base64有效位只有六位，所以最大能表示的字符就为2的6次方64。大小写的字母26*2 + 10个数字 + 两个特殊符号 + /, 一共64个字符。</p>
+<p>举个例子，我们对&quot;ace&quot;进行加密：</p>
+<pre><code class="language-cgo" data-lang="cgo">ace转化为二进制为：‭01100001‬ ‭01100011‬ ‭01100101‬
+转化为base64的四字节六位：011000 01‬‭0110 0011‬01 100101‬
+那因为计算机是一字节八位的存数，所以高位补00后变为：00011000 0001‬‭0110 000011‬01 00100101‬
+转化为十进制：24 22 13 37
+</code></pre><p>通过查表，我们得到最终结果：YWNl</p>
+<h2 id="在base64结尾加等号">在base64结尾加等号</h2>
+<p>例子中为了方便演示我只取了三个字节的字符串，实际中会存在字节数量不是3倍数的情况。将原ASCII码(每个字符8位)转换为转换为base编码字符，会存在两种情况：</p>
+<ol>
+<li>剩余一个ASCII码，余数为1，这时候添加两个等号，因为一个8位的字符至少可以变成两个6位的base64字符，可以补满4个base64字节</li>
+<li>当余数为2时，只需要添加一个等号，因为两8位的字符至少可以变成三个6位的base64字符</li>
+</ol>
+<h2 id="url-encode-and-decode">url encode and decode</h2>
+<p>标准的Base64并不适合直接放在URL里传输，因为URL编码器会把标准Base64中的“/”和“+”字符变为形如“%XX”的形式，而这些“%”号在存入数据库时还需要再进行转换，因为ANSI SQL中已将“%”号用作通配符。</p>
+<p>为解决此问题，可采用一种用于URL的改进Base64编码，</p>
+<ol>
+<li>在标准Base64中的“+”和“/”分别改成了“-”和“_”</li>
+<li>在末尾去掉填充的=号，去掉=号的encode称为URL-Safe-Base64, 如果没有去掉&quot;=&quot;， 就只是URL-Base64而已</li>
+<li>golang是强类型语言，URL-Safe-Base64和URL-Base64的使用是严格区分的。比如像ruby这种弱类型语言，其底层库会兼容这两种URL-encode的方式</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;encoding/base64&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64UrlSafeEncode</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">RawURLEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">s</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64UrlSafeEncode</span>(<span style="color:#a6e22e">src</span> []<span style="color:#66d9ef">byte</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">RawURLEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">src</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64Encode</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">StdEncoding</span>.<span style="color:#a6e22e">DecodeString</span>(<span style="color:#a6e22e">s</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		panic(<span style="color:#a6e22e">err</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Base64Decode</span>(<span style="color:#a6e22e">src</span> []<span style="color:#66d9ef">byte</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">data</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">base64</span>.<span style="color:#a6e22e">RawURLEncoding</span>.<span style="color:#a6e22e">EncodeToString</span>(<span style="color:#a6e22e">src</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">data</span>
+}
+</code></pre></div><h2 id="编码后出现换行符">编码后出现换行符</h2>
+<p>刚开始出现这个问题，也是比较懵逼，查询一些资料，得出的初步结论是：根据RPC822规定，base64 encode每编码76个字符，需要加上一个换行符，这些回答者都是java的开发者，说明可能部分base64编码的java库还按照这个标准执行。</p>
+<p>ruby和golang并没有执行RPC822标准，ruby中每编码60个字符就要加上一个换行符，而golang的标准库干脆就不加换行符。</p>
+<p>那服务间调用岂不是会出错？其实不会，这些标准库都会对换行符进行预处理，这个结论基本符合我们现在服务间数据交互的情况。</p>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Cgo的进阶使用</title>
+			<link>https://zygoo.github.io/posts/golang/cgo/cgo-advanced/</link>
+			<pubDate>Mon, 06 Sep 2021 10:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/golang/cgo/cgo-advanced/</guid>
+			<description>cgo在使用c/c++语言的时候一般有三种方式： 直接使用源码 动态链接库 静态链接库 直接使用源码就是在import &amp;ldquo;c&amp;quot;之</description>
+			<content type="html"><![CDATA[<p>cgo在使用c/c++语言的时候一般有三种方式：</p>
+<ul>
+<li>直接使用源码</li>
+<li>动态链接库</li>
+<li>静态链接库</li>
+</ul>
+<p>直接使用源码就是在import &ldquo;c&quot;之前的注释部分包含c代码，或者在当前的包中包含c/c++源文件。
+链接静态库和动态库的方式比较类似，都是通过LDFLAGS中指定要链接的库。在项目中，动态链接库用得要更多一些，
+所以我们重点来介绍一下如何去使用动态链接库，以及其中会遇到的坑。</p>
+<h2 id="ldflags和cflags">LDFLAGS和CFLAGS</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">controller</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">*cgo LDFLAGS: -L ${SRCDIR}/bupt/msg -Wl,-rpath ${SRCDIR}/bupt/msg -lactive
+</span><span style="color:#75715e">*cgo CFLAGS: -I ${SRCDIR}/bupt/msg
+</span><span style="color:#75715e">#include &lt;stdint.h&gt;
+</span><span style="color:#75715e">#include &lt;stdlib.h&gt;
+</span><span style="color:#75715e">#include &lt;active_server.h&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;unsafe&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">outSize</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">C</span>.<span style="color:#66d9ef">uint</span>)(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span>make([]<span style="color:#66d9ef">byte</span>,<span style="color:#ae81ff">4</span>)[<span style="color:#ae81ff">0</span>]))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">active_msg_handler</span>(<span style="color:#a6e22e">outSize</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#e6db74">&#34;error&#34;</span>)
+    }
+}
+</code></pre></div><p>先看一下LDFLAGS中参数使用，${SRCDIR}指的是当前文件夹所在的路径，${SRCDIR}/bupt/msg指的是动态链接库所在的路径。
+项目中的动态链接库文件名为active.so, 所以很明显-lactive的意义就是去链接active.so这个动态链接库。</p>
+<p>-L和-Wl, -rpath后面都跟了同样的参数，这有什么区别呢？-L这个指令用于指定动态链接库的目录。编译时指定目录，
+只是在程序链接成可执行文件时使用，但是在运行的时候，并不会去指定的目录寻找链接库，这时候就要使用-Wl,-rpath指令。
+这块涉及到链接器和动态链接器的区别，其中奥义，还需要细细品味，就留下一个TODO项吧。</p>
+<p>CFLAGS的使用方法很简单，就是加载头文件的所有路径，然后将头文件include进来。接下来我们就可以使用c库中的接口方法了，传入参数后，
+处理返回的结果，便大功告成。</p>
+<h2 id="相对路径和绝对路径">相对路径和绝对路径</h2>
+<p>从上文的例子中，我们都使用了绝对路径，那可以使用相对路径么？在CFLAGS中，是可以使用相对路径的。
+但是因为一些历史遗留原因，LDFLAGS不支持相对路径，我们必须为链接库指定路径。</p>
+<h2 id="一个项目中同时链接多个动态库">一个项目中同时链接多个动态库</h2>
+<p>在这种场景下，需要注意的是，每个动态链接库的命名都应该是不一样的。做项目的时候，多个动态链接库命名都是一样的，导致运行时出现了问题。</p>
+<h2 id="访问c中的struct">访问c中的struct</h2>
+<p>cgo中传入参数的时候，我们经常需要访问struct，将结构体指针作为参数传递。使用的方式为：C.Struct_&lt;struct的名字&gt;，注意要记得释放内存。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">cData</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">struct__log_export_header__</span>)(<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">Bytes</span>(<span style="color:#a6e22e">data</span>)) <span style="color:#75715e">// data作为入参
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">Free</span>(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#a6e22e">cData</span>))
+</code></pre></div><h2 id="cgo和c">cgo和c++</h2>
+<p>在前面的例子中，都是混编了c的代码，那c++怎么办呢？特别是暴露的接口函数，其入参是c++风格的时候，使用第三方组件swig的成本太高。下面分享一个小技巧：</p>
+<pre><code class="language-cgo" data-lang="cgo">// gdal.h
+#include&lt;iostream&gt;
+#include&lt;string&gt;
+int buptAdal(std::string img_path, float input_gsd, std::string out_put_json)
+int buptSeedling(std::string img_path, std::string tiff_path, std::string out_json_path, float *progress)
+</code></pre><p>在这个头文件的基础上，增加一层wrap，便可以支持cgo调用时候传入c风格的参数：</p>
+<pre><code class="language-cgo" data-lang="cgo">// cwarp.h
+#ifdef _CWRAP_H__
+#define _CWRAP_H__
+
+#ifdef _cplusplus
+extern &quot;C&quot;
+#endif
+int WrapbuptAdal(const char* img_path, float input_gsd, const char* out_put_json)
+int WrapbuptSeedling(const char* img_path, const char* tiff_path, const char* out_json_path, float *progress)
+</code></pre><pre><code class="language-cgo" data-lang="cgo">// cwrap.cpp
+#include &quot;gdal.h&quot;
+extern &quot;C&quot; {
+   #include &quot;cwrap.h&quot;
+}
+int WrapbuptAdal(const char* img_path, float input_gsd, const char* out_put_json) {
+    std::string src = img_path
+    std::string dst = out_put_json
+    return buptGdal(src, input_gsd, dst)
+}
+
+int WrapbuptSeedling(const char* img_path, const char* out_json_path, float *progress) {
+    std::string src = img_path
+    std::string dst = out_put_json
+    return WrapbuptSeedling(src, ht_path, dst, progress)
+}
+</code></pre><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://juejin.im/entry/5b5089e3e51d45198565aaa2">CGO简明教程</a></li>
+<li><a href="https://golang.org/cmd/cgo/#hdr-Go_references_to_C">CGO官方指南</a></li>
+<li><a href="https://www.bandari.net/blog/24">cgo使用需要注意的一些问题</a></li>
+<li><a href="https://chai2010.cn/advanced-go-programming-book/ch2-cgo/ch2-10-link.html">还是chai大佬的go语言圣经</a></li>
+</ul>
+]]></content>
+		</item>
+		
+		<item>
+			<title>C？Go？Cgo!</title>
+			<link>https://zygoo.github.io/posts/golang/cgo/c-go-cgo/</link>
+			<pubDate>Sat, 04 Sep 2021 10:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/golang/cgo/c-go-cgo/</guid>
+			<description>cgo的非权威入门指南 为什么要用cgo? 三十年的风云激荡，互联网诞生了众多的编程语言，但是c语言永远是守护金字塔底层的夯土。所谓cgo, 就是</description>
+			<content type="html"><![CDATA[<h2 id="cgo的非权威入门指南">cgo的非权威入门指南</h2>
+<h3 id="为什么要用cgo">为什么要用cgo?</h3>
+<p>三十年的风云激荡，互联网诞生了众多的编程语言，但是c语言永远是守护金字塔底层的夯土。所谓cgo, 就是要将c和go联合起来，建立一个生态，下面是对cgo价值的一个总结：</p>
+<ul>
+<li>虽然golang号称打遍天下所有的软件细分领域，但这是有局限性的，不能解决所有的问题，有时候c语言可以帮助我们更高效地解决问题</li>
+<li>通过cgo可以继承c/c++将近半个世纪积累，将其生态收纳进来</li>
+</ul>
+<h3 id="最简单的cgo程序">最简单的cgo程序</h3>
+<p>cgo的程序一般都比较复杂，下面我们来构造一个最简单的cgo程序，首先要忽略一下cgo的特性，同时展示出cgo程序和纯go程序的差别：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// hello.go
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    println(<span style="color:#e6db74">&#34;hello cgo&#34;</span>)
+}
+</code></pre></div><p>代码通过import &ldquo;C&quot;语句来启动cgo特性，虽然没有任何cgo的相关函数，但是go build命令会在编译和链接阶段启动cgo编译器，这已经是一个完整cgo程序。</p>
+<h3 id="基于c标准库函数输出字符串">基于c标准库函数输出字符串</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// hello.go
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">//#include &lt;stdio.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">puts</span>(<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#e6db74">&#34;Hello, World\n&#34;</span>))
+}
+</code></pre></div><ul>
+<li>我们不仅仅通过import &ldquo;C&quot;语句启动cgo特性，同时包含c语言的&lt;stdio.h&gt;头文件，然后通过cgo包的C.CString函数将Go语言字符串转换为c语言字符串，最后调用cgo包的C.puts函数向标准输出窗口打印转换后的c字符串</li>
+<li>这段代码中，没有释放使用C.CString创建的c语言字符串，会导致内存泄漏。对于小程序来说，这是没有问题的，因为程序退出之后操作系统会自动回收程序的所有资源</li>
+</ul>
+<h3 id="使用自己的c函数">使用自己的c函数</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// hello.go
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">#include &lt;stdio.h&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">static void SayHello(const char* s) {
+</span><span style="color:#75715e">    puts(s);
+</span><span style="color:#75715e">}
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">SayHello</span>(<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#e6db74">&#34;Hello, World\n&#34;</span>))
+}
+</code></pre></div><p>我们定义一个名叫SayHello的c函数来实现打印，然后从Go语言环境中调用这个SayHello函数。</p>
+<h2 id="cgo的参数传递">cgo的参数传递</h2>
+<p>当涉及到跨语言调用的时候，参数的定义和转换都是一门学问。我们不仅仅需要对两种语言都有所了解，而且要注意资源的申请和释放，类型的转换规则等细节。</p>
+<h3 id="c语言中指针变量声明">c语言中指针变量声明</h3>
+<p>在c语言中，变量的地址往往都是编译系统自动分配的，对于用户来说，我们是不知道某个变量的具体位置的。所以我们定义一个指针变量的o, 把普通变量a地址直接送给指针变量p, 大概就是p = &amp;a这样的写法。
+方法1：定义时直接进行初始化赋值</p>
+<pre><code class="language-cgo" data-lang="cgo">unsigned char a;
+unsigned char *p = &amp;a;
+</code></pre><p>方法2：定义后再进行赋值</p>
+<pre><code class="language-cgo" data-lang="cgo">unsigned char a;
+unsigned char *p;
+p = &amp;a;
+</code></pre><h3 id="字符串指针">字符串指针</h3>
+<p>在c语言不像golang, ruby，有特定的字符串类型，通常字符串是放在一个数组中：</p>
+<pre><code class="language-cgo" data-lang="cgo">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+void main() {
+     char str[] = {80,81,82,83} // str[] = &quot;PQRS&quot;
+     int len = strLen(str), i;
+     for i = 0; i &lt; len; i++ {
+        printf(&quot;%c&quot;,str[i])
+     }
+     printf(&quot;\n&quot;)
+     char *p = str
+     for i = 0; i &lt; len; i++ {
+         printf(&quot;%c&quot;, *(p++))
+     }
+     printf(&quot;\n&quot;)
+     for i = 0; i &lt; len; i++ {
+         printf(&quot;%c&quot;, *(str+i))
+     } 
+}
+PQRS
+PQRS
+PQRS
+</code></pre><p>在上面的示例代码中，字符串数组也可以被认为是一个指针，除来字符串之外，c语言还支持使用一个指针指向字符串的方式来表示字符串。</p>
+<p>用字符串数组表示字符串，非要弄个指针来表示字符串呢？它们最根本的区别就是存储的区域不一样：</p>
+<ul>
+<li>字符数组存储在全局数据区(data,bss)或者栈区(stack)，而以指针形式表示的字符串却存在常量区(text)</li>
+<li>全局数据区或者栈区的字符串，可以被读写</li>
+<li>而常量区的字符串，只能被读取</li>
+</ul>
+<h3 id="cgo的基本参数类型">cgo的基本参数类型</h3>
+<p>golang和c的基本数值类型转换对照表如下：</p>
+<table>
+<thead>
+<tr>
+<th>c语言类型</th>
+<th>cgo类型</th>
+<th>go语言类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>char</td>
+<td>C.char</td>
+<td>byte</td>
+</tr>
+<tr>
+<td>singed char</td>
+<td>C.schar</td>
+<td>int8</td>
+</tr>
+<tr>
+<td>unsigned char</td>
+<td>C.uchar</td>
+<td>uint8</td>
+</tr>
+<tr>
+<td>short</td>
+<td>C.short</td>
+<td>int16</td>
+</tr>
+<tr>
+<td>unsigned short</td>
+<td>C.ushort</td>
+<td>uint16</td>
+</tr>
+<tr>
+<td>int</td>
+<td>C.int</td>
+<td>int32</td>
+</tr>
+<tr>
+<td>unsigned int</td>
+<td>C.uint</td>
+<td>uint32</td>
+</tr>
+<tr>
+<td>long</td>
+<td>C.long</td>
+<td>int32</td>
+</tr>
+<tr>
+<td>unsigned long</td>
+<td>C.ulong</td>
+<td>uint32</td>
+</tr>
+<tr>
+<td>long long int</td>
+<td>C.longlong</td>
+<td>int64</td>
+</tr>
+<tr>
+<td>unsigned long long int</td>
+<td>C.ulonglong</td>
+<td>uint64</td>
+</tr>
+<tr>
+<td>float</td>
+<td>C.float</td>
+<td>float32</td>
+</tr>
+<tr>
+<td>double</td>
+<td>C.double</td>
+<td>float64</td>
+</tr>
+<tr>
+<td>size_t</td>
+<td>C.size_t</td>
+<td>uint</td>
+</tr>
+</tbody>
+</table>
+<p>注意c中的整型，比如int，在标准中是没有定义具体字长的，一般默认认为是4字节，对应cgo类型中C.int则明确定义了字长是4，但golang中的int字长则是8，因此对应的golang类型不是int而是int32。为了避免误用，c代码最好使用C99标准的数值类型，对应的转换关系如下：</p>
+<table>
+<thead>
+<tr>
+<th>c语言类型</th>
+<th>cgo类型</th>
+<th>go语言类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>int8_t</td>
+<td>C.int8_t</td>
+<td>int8</td>
+</tr>
+<tr>
+<td>uint8_t</td>
+<td>C.uint8_t</td>
+<td>uint8</td>
+</tr>
+<tr>
+<td>int16_t</td>
+<td>C.int16_t</td>
+<td>int16</td>
+</tr>
+<tr>
+<td>uint16_t</td>
+<td>C.uint16_t</td>
+<td>uint16</td>
+</tr>
+<tr>
+<td>int32_t</td>
+<td>C.int32_t</td>
+<td>int32</td>
+</tr>
+<tr>
+<td>uint32_t</td>
+<td>C.uint32_t</td>
+<td>uint32</td>
+</tr>
+<tr>
+<td>int64_t</td>
+<td>C.int64_t</td>
+<td>int64</td>
+</tr>
+<tr>
+<td>uint64_t</td>
+<td>C.uint64_t</td>
+<td>uint64</td>
+</tr>
+</tbody>
+</table>
+<h3 id="unsafepointer">unsafe.Pointer</h3>
+<p>我们在学习golang的时候，应该听过这么一句话，go的指针不支持指针类型的转换，但这是为什么呢？</p>
+<p>golang作为一门静态语言，所有的变量都必须是标准变量，也就是说不同类型之间不能进行赋值，计算等跨类型操作。那么指针也对应着相应的类型，也在compile的静态类型检查范围内。同时，静态类型语言，也被称为强类型，也就是一旦被定义，就不能被改变，下面我们看一个错误示范：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">num</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">5</span>
+	<span style="color:#a6e22e">numPointer</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">num</span>
+	<span style="color:#a6e22e">flnum</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#66d9ef">float32</span>)(<span style="color:#a6e22e">numPointer</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flnum</span>)
+}
+<span style="color:#75715e">// command-line-arguments
+</span><span style="color:#75715e">// cannot convert numPointer (type int*) to type *float
+</span></code></pre></div><p>在示例中，我们创建了一个num变量，值为5，类型为int。取其指针地址后，试图强制转换为*float32, 结果就是报错。</p>
+<p>为了解决这个问题，我们就需要用到unsafe.Pointer, 其实golang很多底层库的都使用到了unsafe.Pointer, 它表示任意类型且可寻址的指针值，可以在不同的指针类型之间进行转换，
+但是这个库为什么叫unsafe.Pointer，简单来说，就是不推荐使用，因为它是不安全的。</p>
+<h3 id="切片传递">切片传递</h3>
+<p>由于底层数据结构的差异，不能直接将golang的切片的指针传给c函数调用，而是需要将存储切片数据内部缓冲区的首地址以及切片长度取出来传递：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">#include &lt;stdint.h&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">static void fill_255(char* buf, int32_t len) {
+</span><span style="color:#75715e">	int32_t i;
+</span><span style="color:#75715e">	for (i = 0; i &lt; len; i++) {
+</span><span style="color:#75715e">		buf[i] = 255;
+</span><span style="color:#75715e">	}
+</span><span style="color:#75715e">}
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;unsafe&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, <span style="color:#ae81ff">5</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">b</span>) <span style="color:#75715e">// [0 0 0 0 0]
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">fill_255</span>((<span style="color:#f92672">*</span><span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">char</span>)(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>[<span style="color:#ae81ff">0</span>])), <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">int32_t</span>(len(<span style="color:#a6e22e">b</span>)))
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">b</span>) <span style="color:#75715e">// [255 255 255 255 255]
+</span><span style="color:#75715e"></span>}
+</code></pre></div><h3 id="字符串传递">字符串传递</h3>
+<p>golang的字符串和c中的字符串在底层的内存模型也是不一样的，golang字符串并没有使用'\0&rsquo;终止符标识字符串的结束，因此直接将golang字符串底层数据指针传递给c函数是不行的。</p>
+<p>有一种方案类似于切片的传递，将字符串数据指针和长度传递给c函数后，c函数自行申请一段内存拷贝字符串然后加上终止符后再使用。更好的方案是使用标准库提供的C.CString()将golang的字符串转换为c字符串，再传递给c函数调用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">#include &lt;stdint.h&gt;
+</span><span style="color:#75715e">#include &lt;stdlib.h&gt;
+</span><span style="color:#75715e">#include &lt;string.h&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">static char* cat(char* str1, char* str2) {
+</span><span style="color:#75715e">	static char buf[256];
+</span><span style="color:#75715e">	strcpy(buf, str1);
+</span><span style="color:#75715e">	strcat(buf, str2);
+</span><span style="color:#75715e">	return buf;
+</span><span style="color:#75715e">}
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;unsafe&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">str1</span>, <span style="color:#a6e22e">str2</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;hello&#34;</span>, <span style="color:#e6db74">&#34; world&#34;</span>
+	<span style="color:#75715e">// golang string -&gt; c string
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cstr1</span>, <span style="color:#a6e22e">cstr2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#a6e22e">str1</span>), <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#a6e22e">str2</span>)
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">free</span>(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#a6e22e">cstr1</span>)) <span style="color:#75715e">// must call
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">free</span>(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#a6e22e">cstr2</span>))
+	<span style="color:#a6e22e">cstr3</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">cat</span>(<span style="color:#a6e22e">cstr1</span>, <span style="color:#a6e22e">cstr2</span>)
+	<span style="color:#75715e">// c string -&gt; golang string
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">str3</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">GoString</span>(<span style="color:#a6e22e">cstr3</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">str3</span>) <span style="color:#75715e">// &#34;hello world&#34;
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>需要注意的是，C.CString()返回的c字符串是在堆上新创建的并且不受gc的管理，使用完后需要自行调用C.free()释放，否则会造成内存泄露，而且这种内存泄露用pprof也定位不出来。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://chai2010.cn/advanced-go-programming-book/ch2-cgo/ch2-01-hello-cgo.html">chai大佬的go语言圣经</a></li>
+<li><a href="http://litang.me/post/golang-cgo/">golang cgo 使用总结</a></li>
+<li><a href="https://segmentfault.com/q/1010000009515544">Cgo中如何将 []byte 转换为 *char</a></li>
+<li><a href="https://linkscue.com/2018/11/12/2018-11-12-cgo-types-covertion/">CGO类型及常见类型转换</a></li>
+<li><a href="https://blog.csdn.net/tennysonsky/article/details/78789878">slice内存模型</a></li>
+<li><a href="https://www.jianshu.com/p/fb25dce48317">有点不安全却又一亮的 Go unsafe.Pointer</a></li>
+<li><a href="https://blog.csdn.net/u013812502/article/details/81196367">C语言基础——字符串指针（指向字符串的指针）</a></li>
+<li><a href="http://c.biancheng.net/cpp/html/1925.html">C语言指针变量的声明</a></li>
+</ul>
+]]></content>
+		</item>
 		
 		<item>
 			<title>RabbitMQ进阶使用: 多消费者的worker模式</title>
@@ -16,8 +502,7 @@
 			<guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_worker_mode/</guid>
 			<description>项目中遇到的问题 在现有的项目架构中，我们希望使用RabbitMQ实现多个消费者同时接受同一个队列的消息。使用过RocketMQ的朋友应该都知</description>
 			<content type="html"><![CDATA[<h2 id="项目中遇到的问题">项目中遇到的问题</h2>
-<p>在现有的项目架构中，我们希望使用RabbitMQ实现多个消费者同时接受同一个队列的消息。使用过RocketMQ的朋友应该都知道，RocketMQ有一个消费组的概念，
-其组内的每一个消费者都会消费同一个message。</p>
+<p>在现有的项目架构中，我们希望使用RabbitMQ实现多个消费者同时接受同一个队列的消息。使用过RocketMQ的朋友应该都知道，RocketMQ有一个消费组的概念，其组内的每一个消费者都会消费同一个message。</p>
 <p>那怎么在RabbitMQ中做到群组消费呢？我的答案是，RabbitMQ不适合群组消费的业务场景。或者说，可以使用RabbitMQ + 其他组件去实现群组消费。</p>
 <p>后面我们可以说一说，如何用RabbitMQ + Redis去设计一个分布式的websocket消息网关。</p>
 <h2 id="rabbitmq-worker模式">RabbitMQ worker模式</h2>

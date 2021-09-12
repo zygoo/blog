@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="Cgo的进阶使用">
+<meta itemprop="description" content="cgo在使用c/c&#43;&#43;语言的时候一般有三种方式： 直接使用源码 动态链接库 静态链接库 直接使用源码就是在import &ldquo;c&quot;之"><meta itemprop="datePublished" content="2021-09-06T10:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-09-06T10:18:06+08:00" />
+<meta itemprop="wordCount" content="1190">
+<meta itemprop="keywords" content="golang," /><meta property="og:title" content="Cgo的进阶使用" />
+<meta property="og:description" content="cgo在使用c/c&#43;&#43;语言的时候一般有三种方式： 直接使用源码 动态链接库 静态链接库 直接使用源码就是在import &ldquo;c&quot;之" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/golang/cgo/cgo-advanced/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-09-06T10:18:06+08:00" />
+<meta property="article:modified_time" content="2021-09-06T10:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Cgo的进阶使用"/>
+<meta name="twitter:description" content="cgo在使用c/c&#43;&#43;语言的时候一般有三种方式： 直接使用源码 动态链接库 静态链接库 直接使用源码就是在import &ldquo;c&quot;之"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>Cgo的进阶使用</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 6, 2021</span></div>
+				<h1>Cgo的进阶使用</h1>
+			</header>
+			<div class="content">
+				<p>cgo在使用c/c++语言的时候一般有三种方式：</p>
+<ul>
+<li>直接使用源码</li>
+<li>动态链接库</li>
+<li>静态链接库</li>
+</ul>
+<p>直接使用源码就是在import &ldquo;c&quot;之前的注释部分包含c代码，或者在当前的包中包含c/c++源文件。
+链接静态库和动态库的方式比较类似，都是通过LDFLAGS中指定要链接的库。在项目中，动态链接库用得要更多一些，
+所以我们重点来介绍一下如何去使用动态链接库，以及其中会遇到的坑。</p>
+<h2 id="ldflags和cflags">LDFLAGS和CFLAGS<a href="#ldflags和cflags" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">controller</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">*cgo LDFLAGS: -L ${SRCDIR}/bupt/msg -Wl,-rpath ${SRCDIR}/bupt/msg -lactive
+</span><span style="color:#75715e">*cgo CFLAGS: -I ${SRCDIR}/bupt/msg
+</span><span style="color:#75715e">#include &lt;stdint.h&gt;
+</span><span style="color:#75715e">#include &lt;stdlib.h&gt;
+</span><span style="color:#75715e">#include &lt;active_server.h&gt;
+</span><span style="color:#75715e"> */</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;unsafe&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">outSize</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">C</span>.<span style="color:#66d9ef">uint</span>)(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span>make([]<span style="color:#66d9ef">byte</span>,<span style="color:#ae81ff">4</span>)[<span style="color:#ae81ff">0</span>]))
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">active_msg_handler</span>(<span style="color:#a6e22e">outSize</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> {
+		panic(<span style="color:#e6db74">&#34;error&#34;</span>)
+    }
+}
+</code></pre></div><p>先看一下LDFLAGS中参数使用，${SRCDIR}指的是当前文件夹所在的路径，${SRCDIR}/bupt/msg指的是动态链接库所在的路径。
+项目中的动态链接库文件名为active.so, 所以很明显-lactive的意义就是去链接active.so这个动态链接库。</p>
+<p>-L和-Wl, -rpath后面都跟了同样的参数，这有什么区别呢？-L这个指令用于指定动态链接库的目录。编译时指定目录，
+只是在程序链接成可执行文件时使用，但是在运行的时候，并不会去指定的目录寻找链接库，这时候就要使用-Wl,-rpath指令。
+这块涉及到链接器和动态链接器的区别，其中奥义，还需要细细品味，就留下一个TODO项吧。</p>
+<p>CFLAGS的使用方法很简单，就是加载头文件的所有路径，然后将头文件include进来。接下来我们就可以使用c库中的接口方法了，传入参数后，
+处理返回的结果，便大功告成。</p>
+<h2 id="相对路径和绝对路径">相对路径和绝对路径<a href="#相对路径和绝对路径" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>从上文的例子中，我们都使用了绝对路径，那可以使用相对路径么？在CFLAGS中，是可以使用相对路径的。
+但是因为一些历史遗留原因，LDFLAGS不支持相对路径，我们必须为链接库指定路径。</p>
+<h2 id="一个项目中同时链接多个动态库">一个项目中同时链接多个动态库<a href="#一个项目中同时链接多个动态库" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>在这种场景下，需要注意的是，每个动态链接库的命名都应该是不一样的。做项目的时候，多个动态链接库命名都是一样的，导致运行时出现了问题。</p>
+<h2 id="访问c中的struct">访问c中的struct<a href="#访问c中的struct" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>cgo中传入参数的时候，我们经常需要访问struct，将结构体指针作为参数传递。使用的方式为：C.Struct_&lt;struct的名字&gt;，注意要记得释放内存。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">cData</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">struct__log_export_header__</span>)(<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">Bytes</span>(<span style="color:#a6e22e">data</span>)) <span style="color:#75715e">// data作为入参
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">Free</span>(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#a6e22e">cData</span>))
+</code></pre></div><h2 id="cgo和c">cgo和c++<a href="#cgo和c" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>在前面的例子中，都是混编了c的代码，那c++怎么办呢？特别是暴露的接口函数，其入参是c++风格的时候，使用第三方组件swig的成本太高。下面分享一个小技巧：</p>
+<pre><code class="language-cgo" data-lang="cgo">// gdal.h
+#include&lt;iostream&gt;
+#include&lt;string&gt;
+int buptAdal(std::string img_path, float input_gsd, std::string out_put_json)
+int buptSeedling(std::string img_path, std::string tiff_path, std::string out_json_path, float *progress)
+</code></pre><p>在这个头文件的基础上，增加一层wrap，便可以支持cgo调用时候传入c风格的参数：</p>
+<pre><code class="language-cgo" data-lang="cgo">// cwarp.h
+#ifdef _CWRAP_H__
+#define _CWRAP_H__
+
+#ifdef _cplusplus
+extern &quot;C&quot;
+#endif
+int WrapbuptAdal(const char* img_path, float input_gsd, const char* out_put_json)
+int WrapbuptSeedling(const char* img_path, const char* tiff_path, const char* out_json_path, float *progress)
+</code></pre><pre><code class="language-cgo" data-lang="cgo">// cwrap.cpp
+#include &quot;gdal.h&quot;
+extern &quot;C&quot; {
+   #include &quot;cwrap.h&quot;
+}
+int WrapbuptAdal(const char* img_path, float input_gsd, const char* out_put_json) {
+    std::string src = img_path
+    std::string dst = out_put_json
+    return buptGdal(src, input_gsd, dst)
+}
+
+int WrapbuptSeedling(const char* img_path, const char* out_json_path, float *progress) {
+    std::string src = img_path
+    std::string dst = out_put_json
+    return WrapbuptSeedling(src, ht_path, dst, progress)
+}
+</code></pre><h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://juejin.im/entry/5b5089e3e51d45198565aaa2">CGO简明教程</a></li>
+<li><a href="https://golang.org/cmd/cgo/#hdr-Go_references_to_C">CGO官方指南</a></li>
+<li><a href="https://www.bandari.net/blog/24">cgo使用需要注意的一些问题</a></li>
+<li><a href="https://chai2010.cn/advanced-go-programming-book/ch2-cgo/ch2-10-link.html">还是chai大佬的go语言圣经</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/golang">golang</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1190 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-09-06 10:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#ldflags和cflags">LDFLAGS和CFLAGS</a></li>
+    <li><a href="#相对路径和绝对路径">相对路径和绝对路径</a></li>
+    <li><a href="#一个项目中同时链接多个动态库">一个项目中同时链接多个动态库</a></li>
+    <li><a href="#访问c中的struct">访问c中的struct</a></li>
+    <li><a href="#cgo和c">cgo和c++</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://zygoo.github.io/posts/base/base64/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>base64编码后出现换行符？</span>
+			</a>
+			<a class="prev-post" href="https://zygoo.github.io/posts/golang/cgo/c-go-cgo/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>C？Go？Cgo!</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>

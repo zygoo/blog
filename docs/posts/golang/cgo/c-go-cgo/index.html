@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="C？Go？Cgo!">
+<meta itemprop="description" content="cgo的非权威入门指南 为什么要用cgo? 三十年的风云激荡，互联网诞生了众多的编程语言，但是c语言永远是守护金字塔底层的夯土。所谓cgo, 就是"><meta itemprop="datePublished" content="2021-09-04T10:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-09-04T10:18:06+08:00" />
+<meta itemprop="wordCount" content="2571">
+<meta itemprop="keywords" content="golang," /><meta property="og:title" content="C？Go？Cgo!" />
+<meta property="og:description" content="cgo的非权威入门指南 为什么要用cgo? 三十年的风云激荡，互联网诞生了众多的编程语言，但是c语言永远是守护金字塔底层的夯土。所谓cgo, 就是" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/golang/cgo/c-go-cgo/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-09-04T10:18:06+08:00" />
+<meta property="article:modified_time" content="2021-09-04T10:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="C？Go？Cgo!"/>
+<meta name="twitter:description" content="cgo的非权威入门指南 为什么要用cgo? 三十年的风云激荡，互联网诞生了众多的编程语言，但是c语言永远是守护金字塔底层的夯土。所谓cgo, 就是"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>C？Go？Cgo!</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 4, 2021</span></div>
+				<h1>C？Go？Cgo!</h1>
+			</header>
+			<div class="content">
+				<h2 id="cgo的非权威入门指南">cgo的非权威入门指南<a href="#cgo的非权威入门指南" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<h3 id="为什么要用cgo">为什么要用cgo?<a href="#为什么要用cgo" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>三十年的风云激荡，互联网诞生了众多的编程语言，但是c语言永远是守护金字塔底层的夯土。所谓cgo, 就是要将c和go联合起来，建立一个生态，下面是对cgo价值的一个总结：</p>
+<ul>
+<li>虽然golang号称打遍天下所有的软件细分领域，但这是有局限性的，不能解决所有的问题，有时候c语言可以帮助我们更高效地解决问题</li>
+<li>通过cgo可以继承c/c++将近半个世纪积累，将其生态收纳进来</li>
+</ul>
+<h3 id="最简单的cgo程序">最简单的cgo程序<a href="#最简单的cgo程序" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>cgo的程序一般都比较复杂，下面我们来构造一个最简单的cgo程序，首先要忽略一下cgo的特性，同时展示出cgo程序和纯go程序的差别：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// hello.go
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    println(<span style="color:#e6db74">&#34;hello cgo&#34;</span>)
+}
+</code></pre></div><p>代码通过import &ldquo;C&quot;语句来启动cgo特性，虽然没有任何cgo的相关函数，但是go build命令会在编译和链接阶段启动cgo编译器，这已经是一个完整cgo程序。</p>
+<h3 id="基于c标准库函数输出字符串">基于c标准库函数输出字符串<a href="#基于c标准库函数输出字符串" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// hello.go
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">//#include &lt;stdio.h&gt;
+</span><span style="color:#75715e"></span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">puts</span>(<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#e6db74">&#34;Hello, World\n&#34;</span>))
+}
+</code></pre></div><ul>
+<li>我们不仅仅通过import &ldquo;C&quot;语句启动cgo特性，同时包含c语言的&lt;stdio.h&gt;头文件，然后通过cgo包的C.CString函数将Go语言字符串转换为c语言字符串，最后调用cgo包的C.puts函数向标准输出窗口打印转换后的c字符串</li>
+<li>这段代码中，没有释放使用C.CString创建的c语言字符串，会导致内存泄漏。对于小程序来说，这是没有问题的，因为程序退出之后操作系统会自动回收程序的所有资源</li>
+</ul>
+<h3 id="使用自己的c函数">使用自己的c函数<a href="#使用自己的c函数" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// hello.go
+</span><span style="color:#75715e"></span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">#include &lt;stdio.h&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">static void SayHello(const char* s) {
+</span><span style="color:#75715e">    puts(s);
+</span><span style="color:#75715e">}
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">SayHello</span>(<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#e6db74">&#34;Hello, World\n&#34;</span>))
+}
+</code></pre></div><p>我们定义一个名叫SayHello的c函数来实现打印，然后从Go语言环境中调用这个SayHello函数。</p>
+<h2 id="cgo的参数传递">cgo的参数传递<a href="#cgo的参数传递" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>当涉及到跨语言调用的时候，参数的定义和转换都是一门学问。我们不仅仅需要对两种语言都有所了解，而且要注意资源的申请和释放，类型的转换规则等细节。</p>
+<h3 id="c语言中指针变量声明">c语言中指针变量声明<a href="#c语言中指针变量声明" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>在c语言中，变量的地址往往都是编译系统自动分配的，对于用户来说，我们是不知道某个变量的具体位置的。所以我们定义一个指针变量的o, 把普通变量a地址直接送给指针变量p, 大概就是p = &amp;a这样的写法。
+方法1：定义时直接进行初始化赋值</p>
+<pre><code class="language-cgo" data-lang="cgo">unsigned char a;
+unsigned char *p = &amp;a;
+</code></pre><p>方法2：定义后再进行赋值</p>
+<pre><code class="language-cgo" data-lang="cgo">unsigned char a;
+unsigned char *p;
+p = &amp;a;
+</code></pre><h3 id="字符串指针">字符串指针<a href="#字符串指针" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>在c语言不像golang, ruby，有特定的字符串类型，通常字符串是放在一个数组中：</p>
+<pre><code class="language-cgo" data-lang="cgo">#include&lt;stdio.h&gt;
+#include&lt;string.h&gt;
+void main() {
+     char str[] = {80,81,82,83} // str[] = &quot;PQRS&quot;
+     int len = strLen(str), i;
+     for i = 0; i &lt; len; i++ {
+        printf(&quot;%c&quot;,str[i])
+     }
+     printf(&quot;\n&quot;)
+     char *p = str
+     for i = 0; i &lt; len; i++ {
+         printf(&quot;%c&quot;, *(p++))
+     }
+     printf(&quot;\n&quot;)
+     for i = 0; i &lt; len; i++ {
+         printf(&quot;%c&quot;, *(str+i))
+     } 
+}
+PQRS
+PQRS
+PQRS
+</code></pre><p>在上面的示例代码中，字符串数组也可以被认为是一个指针，除来字符串之外，c语言还支持使用一个指针指向字符串的方式来表示字符串。</p>
+<p>用字符串数组表示字符串，非要弄个指针来表示字符串呢？它们最根本的区别就是存储的区域不一样：</p>
+<ul>
+<li>字符数组存储在全局数据区(data,bss)或者栈区(stack)，而以指针形式表示的字符串却存在常量区(text)</li>
+<li>全局数据区或者栈区的字符串，可以被读写</li>
+<li>而常量区的字符串，只能被读取</li>
+</ul>
+<h3 id="cgo的基本参数类型">cgo的基本参数类型<a href="#cgo的基本参数类型" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>golang和c的基本数值类型转换对照表如下：</p>
+<table>
+<thead>
+<tr>
+<th>c语言类型</th>
+<th>cgo类型</th>
+<th>go语言类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>char</td>
+<td>C.char</td>
+<td>byte</td>
+</tr>
+<tr>
+<td>singed char</td>
+<td>C.schar</td>
+<td>int8</td>
+</tr>
+<tr>
+<td>unsigned char</td>
+<td>C.uchar</td>
+<td>uint8</td>
+</tr>
+<tr>
+<td>short</td>
+<td>C.short</td>
+<td>int16</td>
+</tr>
+<tr>
+<td>unsigned short</td>
+<td>C.ushort</td>
+<td>uint16</td>
+</tr>
+<tr>
+<td>int</td>
+<td>C.int</td>
+<td>int32</td>
+</tr>
+<tr>
+<td>unsigned int</td>
+<td>C.uint</td>
+<td>uint32</td>
+</tr>
+<tr>
+<td>long</td>
+<td>C.long</td>
+<td>int32</td>
+</tr>
+<tr>
+<td>unsigned long</td>
+<td>C.ulong</td>
+<td>uint32</td>
+</tr>
+<tr>
+<td>long long int</td>
+<td>C.longlong</td>
+<td>int64</td>
+</tr>
+<tr>
+<td>unsigned long long int</td>
+<td>C.ulonglong</td>
+<td>uint64</td>
+</tr>
+<tr>
+<td>float</td>
+<td>C.float</td>
+<td>float32</td>
+</tr>
+<tr>
+<td>double</td>
+<td>C.double</td>
+<td>float64</td>
+</tr>
+<tr>
+<td>size_t</td>
+<td>C.size_t</td>
+<td>uint</td>
+</tr>
+</tbody>
+</table>
+<p>注意c中的整型，比如int，在标准中是没有定义具体字长的，一般默认认为是4字节，对应cgo类型中C.int则明确定义了字长是4，但golang中的int字长则是8，因此对应的golang类型不是int而是int32。为了避免误用，c代码最好使用C99标准的数值类型，对应的转换关系如下：</p>
+<table>
+<thead>
+<tr>
+<th>c语言类型</th>
+<th>cgo类型</th>
+<th>go语言类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>int8_t</td>
+<td>C.int8_t</td>
+<td>int8</td>
+</tr>
+<tr>
+<td>uint8_t</td>
+<td>C.uint8_t</td>
+<td>uint8</td>
+</tr>
+<tr>
+<td>int16_t</td>
+<td>C.int16_t</td>
+<td>int16</td>
+</tr>
+<tr>
+<td>uint16_t</td>
+<td>C.uint16_t</td>
+<td>uint16</td>
+</tr>
+<tr>
+<td>int32_t</td>
+<td>C.int32_t</td>
+<td>int32</td>
+</tr>
+<tr>
+<td>uint32_t</td>
+<td>C.uint32_t</td>
+<td>uint32</td>
+</tr>
+<tr>
+<td>int64_t</td>
+<td>C.int64_t</td>
+<td>int64</td>
+</tr>
+<tr>
+<td>uint64_t</td>
+<td>C.uint64_t</td>
+<td>uint64</td>
+</tr>
+</tbody>
+</table>
+<h3 id="unsafepointer">unsafe.Pointer<a href="#unsafepointer" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>我们在学习golang的时候，应该听过这么一句话，go的指针不支持指针类型的转换，但这是为什么呢？</p>
+<p>golang作为一门静态语言，所有的变量都必须是标准变量，也就是说不同类型之间不能进行赋值，计算等跨类型操作。那么指针也对应着相应的类型，也在compile的静态类型检查范围内。同时，静态类型语言，也被称为强类型，也就是一旦被定义，就不能被改变，下面我们看一个错误示范：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">num</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">5</span>
+	<span style="color:#a6e22e">numPointer</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">num</span>
+	<span style="color:#a6e22e">flnum</span> <span style="color:#f92672">:=</span> (<span style="color:#f92672">*</span><span style="color:#66d9ef">float32</span>)(<span style="color:#a6e22e">numPointer</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">flnum</span>)
+}
+<span style="color:#75715e">// command-line-arguments
+</span><span style="color:#75715e">// cannot convert numPointer (type int*) to type *float
+</span></code></pre></div><p>在示例中，我们创建了一个num变量，值为5，类型为int。取其指针地址后，试图强制转换为*float32, 结果就是报错。</p>
+<p>为了解决这个问题，我们就需要用到unsafe.Pointer, 其实golang很多底层库的都使用到了unsafe.Pointer, 它表示任意类型且可寻址的指针值，可以在不同的指针类型之间进行转换，
+但是这个库为什么叫unsafe.Pointer，简单来说，就是不推荐使用，因为它是不安全的。</p>
+<h3 id="切片传递">切片传递<a href="#切片传递" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>由于底层数据结构的差异，不能直接将golang的切片的指针传给c函数调用，而是需要将存储切片数据内部缓冲区的首地址以及切片长度取出来传递：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">#include &lt;stdint.h&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">static void fill_255(char* buf, int32_t len) {
+</span><span style="color:#75715e">	int32_t i;
+</span><span style="color:#75715e">	for (i = 0; i &lt; len; i++) {
+</span><span style="color:#75715e">		buf[i] = 255;
+</span><span style="color:#75715e">	}
+</span><span style="color:#75715e">}
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;unsafe&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">b</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">byte</span>, <span style="color:#ae81ff">5</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">b</span>) <span style="color:#75715e">// [0 0 0 0 0]
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">fill_255</span>((<span style="color:#f92672">*</span><span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">char</span>)(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">b</span>[<span style="color:#ae81ff">0</span>])), <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">int32_t</span>(len(<span style="color:#a6e22e">b</span>)))
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">b</span>) <span style="color:#75715e">// [255 255 255 255 255]
+</span><span style="color:#75715e"></span>}
+</code></pre></div><h3 id="字符串传递">字符串传递<a href="#字符串传递" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>golang的字符串和c中的字符串在底层的内存模型也是不一样的，golang字符串并没有使用'\0&rsquo;终止符标识字符串的结束，因此直接将golang字符串底层数据指针传递给c函数是不行的。</p>
+<p>有一种方案类似于切片的传递，将字符串数据指针和长度传递给c函数后，c函数自行申请一段内存拷贝字符串然后加上终止符后再使用。更好的方案是使用标准库提供的C.CString()将golang的字符串转换为c字符串，再传递给c函数调用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">#include &lt;stdint.h&gt;
+</span><span style="color:#75715e">#include &lt;stdlib.h&gt;
+</span><span style="color:#75715e">#include &lt;string.h&gt;
+</span><span style="color:#75715e">
+</span><span style="color:#75715e">static char* cat(char* str1, char* str2) {
+</span><span style="color:#75715e">	static char buf[256];
+</span><span style="color:#75715e">	strcpy(buf, str1);
+</span><span style="color:#75715e">	strcat(buf, str2);
+</span><span style="color:#75715e">	return buf;
+</span><span style="color:#75715e">}
+</span><span style="color:#75715e">*/</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;C&#34;</span>
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;unsafe&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">str1</span>, <span style="color:#a6e22e">str2</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;hello&#34;</span>, <span style="color:#e6db74">&#34; world&#34;</span>
+	<span style="color:#75715e">// golang string -&gt; c string
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cstr1</span>, <span style="color:#a6e22e">cstr2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#a6e22e">str1</span>), <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">CString</span>(<span style="color:#a6e22e">str2</span>)
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">free</span>(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#a6e22e">cstr1</span>)) <span style="color:#75715e">// must call
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">free</span>(<span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>(<span style="color:#a6e22e">cstr2</span>))
+	<span style="color:#a6e22e">cstr3</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">cat</span>(<span style="color:#a6e22e">cstr1</span>, <span style="color:#a6e22e">cstr2</span>)
+	<span style="color:#75715e">// c string -&gt; golang string
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">str3</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">C</span>.<span style="color:#a6e22e">GoString</span>(<span style="color:#a6e22e">cstr3</span>)
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">str3</span>) <span style="color:#75715e">// &#34;hello world&#34;
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>需要注意的是，C.CString()返回的c字符串是在堆上新创建的并且不受gc的管理，使用完后需要自行调用C.free()释放，否则会造成内存泄露，而且这种内存泄露用pprof也定位不出来。</p>
+<h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://chai2010.cn/advanced-go-programming-book/ch2-cgo/ch2-01-hello-cgo.html">chai大佬的go语言圣经</a></li>
+<li><a href="http://litang.me/post/golang-cgo/">golang cgo 使用总结</a></li>
+<li><a href="https://segmentfault.com/q/1010000009515544">Cgo中如何将 []byte 转换为 *char</a></li>
+<li><a href="https://linkscue.com/2018/11/12/2018-11-12-cgo-types-covertion/">CGO类型及常见类型转换</a></li>
+<li><a href="https://blog.csdn.net/tennysonsky/article/details/78789878">slice内存模型</a></li>
+<li><a href="https://www.jianshu.com/p/fb25dce48317">有点不安全却又一亮的 Go unsafe.Pointer</a></li>
+<li><a href="https://blog.csdn.net/u013812502/article/details/81196367">C语言基础——字符串指针（指向字符串的指针）</a></li>
+<li><a href="http://c.biancheng.net/cpp/html/1925.html">C语言指针变量的声明</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/golang">golang</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2571 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-09-04 10:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#cgo的非权威入门指南">cgo的非权威入门指南</a>
+      <ul>
+        <li><a href="#为什么要用cgo">为什么要用cgo?</a></li>
+        <li><a href="#最简单的cgo程序">最简单的cgo程序</a></li>
+        <li><a href="#基于c标准库函数输出字符串">基于c标准库函数输出字符串</a></li>
+        <li><a href="#使用自己的c函数">使用自己的c函数</a></li>
+      </ul>
+    </li>
+    <li><a href="#cgo的参数传递">cgo的参数传递</a>
+      <ul>
+        <li><a href="#c语言中指针变量声明">c语言中指针变量声明</a></li>
+        <li><a href="#字符串指针">字符串指针</a></li>
+        <li><a href="#cgo的基本参数类型">cgo的基本参数类型</a></li>
+        <li><a href="#unsafepointer">unsafe.Pointer</a></li>
+        <li><a href="#切片传递">切片传递</a></li>
+        <li><a href="#字符串传递">字符串传递</a></li>
+      </ul>
+    </li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://zygoo.github.io/posts/golang/cgo/cgo-advanced/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>Cgo的进阶使用</span>
+			</a>
+			<a class="prev-post" href="https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_worker_mode/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>RabbitMQ进阶使用: 多消费者的worker模式</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>
