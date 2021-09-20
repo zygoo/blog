@@ -5,11 +5,122 @@
 		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
 		<generator>Hugo -- gohugo.io</generator>
 		<language>zh-hans</language>
-		<lastBuildDate>Tue, 07 Sep 2021 10:18:06 +0800</lastBuildDate>
+		<lastBuildDate>Mon, 13 Sep 2021 12:18:09 +0800</lastBuildDate>
 		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
 		
 		<item>
-			<title>base64编码后出现换行符？</title>
+			<title>RabbitMQ断线重连的正确姿势</title>
+			<link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_reconnect/</link>
+			<pubDate>Mon, 13 Sep 2021 12:18:09 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_reconnect/</guid>
+			<description>背景/问题 在项目中，使用RabbitMQ来做消息的异步分发，但是每隔一段时间都会出现发布订阅的报错， 服务重启后恢复。 问题分析 服务故障之后，首</description>
+			<content type="html"><![CDATA[<h2 id="背景问题">背景/问题</h2>
+<p>在项目中，使用RabbitMQ来做消息的异步分发，但是每隔一段时间都会出现发布订阅的报错， 服务重启后恢复。</p>
+<h3 id="问题分析">问题分析</h3>
+<p>服务故障之后，首先查看了发布方和消费方的日志，发现了&quot;channel/connection is not open&quot;的错误日志。而为什么channel会被关闭，先来看看下面错误码：</p>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Reason</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用程序主动断开连接，网络异常被动断开连接</td>
+<td>连接中断</td>
+<td>连接关闭</td>
+</tr>
+<tr>
+<td>重新声明现有队列或具有不匹配属性的交换将失败</td>
+<td>406 PRECONDITION_FAILED</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>访问不允许用户访问的资源将失败</td>
+<td>403 ACCESS_REFUSED错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>绑定不存在的队列或不存在的交换将失败</td>
+<td>404 NOT_FOUND错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>从不存在的队列中使用将失败</td>
+<td>404 NOT_FOUND错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>发布到不退出的交换将失败</td>
+<td>404 NOT_FOUND错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>从除声明连接以外的连接访问独占队列将失败</td>
+<td>405 RESOURCE_LOCKED</td>
+<td>协议异常</td>
+</tr>
+</tbody>
+</table>
+<p>得到结论：由于网络波动、生产者消费者使用不当会导致channel被关闭。对于AMQP的重连，社区里面其实已经做过了很多讨论。AMQP的主要开发者认为重连是业务的事情，所以不愿意在AMQP底层中加入更多自动重连的逻辑。</p>
+<p>没有重连的策略，导致消息无法消费订阅，服务中断，这在业务上是无法接受的。所以我们在业务SDK中，加入了重连的逻辑。</p>
+<h2 id="重连原理">重连原理</h2>
+<pre><code class="language-cgo" data-lang="cgo">https://ms2008.github.io/2019/06/16/golang-rabbitmq/ 
+https://github.com/streadway/amqp/issues/133
+</code></pre><p>简而言之，channel.NotifyClose和connection.NotifyClose可以接收到错误消息，那就可以以此为重连的触发器。函数原型：func NotifyClose(c chan *Error) chan *Error。流程图如下：</p>
+<p><img src="/img/rabbitmq_reconnect.png" alt=""></p>
+<h2 id="结合code食用">结合code食用</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">AmqpClient</span>) <span style="color:#a6e22e">reconnect</span>() {
+	<span style="color:#66d9ef">for</span>{
+		<span style="color:#75715e">//延时启动，确保消费方订阅之后，再启动重连的监听
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">reconnectDetectDur</span>)
+		<span style="color:#66d9ef">select</span>{
+		<span style="color:#75715e">// 生产环境中没有观察到channel close err，目前只是做了简单的日志打印
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">channelNotify</span>:
+		    <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">notifyFunc</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;channel close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>))
+		    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;channel close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">connNotify</span>:
+		    <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">notifyFunc</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;connection close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>))
+            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;connection close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+            <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">isConnected</span> = <span style="color:#66d9ef">false</span>
+        }
+ 
+        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">isConnected</span> {
+        	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumerFunc</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumeChannel</span>.<span style="color:#a6e22e">Cancel</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">queueName</span>, <span style="color:#66d9ef">true</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;channel canclel err: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+        	}
+        	<span style="color:#75715e">// 限制重连接次数
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">cnt</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">cnt</span> &lt; <span style="color:#a6e22e">reconnectTimes</span>; <span style="color:#a6e22e">cnt</span><span style="color:#f92672">++</span> {
+                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Connect</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">notifyFunc</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+                   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumerFunc</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+                      <span style="color:#75715e">// 消费者重连之后需要重新订阅
+</span><span style="color:#75715e"></span>                   	  <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Subscribe</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">queueName</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumerFunc</span>)
+                      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+                   	     <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reconnect subscribe error&#34;</span>)
+                      }
+                   <span style="color:#66d9ef">break</span>   
+                }
+                <span style="color:#75715e">// 重连时留一些时间间隔，后期最好可以做到指数退避算法
+</span><span style="color:#75715e"></span>                <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">reconnectDelay</span>)
+            }
+            <span style="color:#66d9ef">break</span>
+        }
+    }        
+}
+</code></pre></div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://ms2008.github.io/2019/06/16/golang-rabbitmq/">Golang RabbitMQ 故障排查一例</a></li>
+<li><a href="https://yeqown.xyz/2019/10/10/AMQP%E9%87%8D%E8%BF%9E%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0-Go/">AMQP重连机制实现 GO</a></li>
+</ul>
+]]></content>
+		</item>
+		
+		<item>
+			<title>Base64编码后出现换行符？</title>
 			<link>https://zygoo.github.io/posts/base/base64/</link>
 			<pubDate>Tue, 07 Sep 2021 10:18:06 +0800</pubDate>
 			

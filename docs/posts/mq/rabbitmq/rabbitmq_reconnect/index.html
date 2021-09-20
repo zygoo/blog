@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="RabbitMQ断线重连的正确姿势">
+<meta itemprop="description" content="背景/问题 在项目中，使用RabbitMQ来做消息的异步分发，但是每隔一段时间都会出现发布订阅的报错， 服务重启后恢复。 问题分析 服务故障之后，首"><meta itemprop="datePublished" content="2021-09-13T12:18:09+08:00" />
+<meta itemprop="dateModified" content="2021-09-13T12:18:09+08:00" />
+<meta itemprop="wordCount" content="882">
+<meta itemprop="keywords" content="mq," /><meta property="og:title" content="RabbitMQ断线重连的正确姿势" />
+<meta property="og:description" content="背景/问题 在项目中，使用RabbitMQ来做消息的异步分发，但是每隔一段时间都会出现发布订阅的报错， 服务重启后恢复。 问题分析 服务故障之后，首" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_reconnect/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-09-13T12:18:09+08:00" />
+<meta property="article:modified_time" content="2021-09-13T12:18:09+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="RabbitMQ断线重连的正确姿势"/>
+<meta name="twitter:description" content="背景/问题 在项目中，使用RabbitMQ来做消息的异步分发，但是每隔一段时间都会出现发布订阅的报错， 服务重启后恢复。 问题分析 服务故障之后，首"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>RabbitMQ断线重连的正确姿势</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Sep 13, 2021</span></div>
+				<h1>RabbitMQ断线重连的正确姿势</h1>
+			</header>
+			<div class="content">
+				<h2 id="背景问题">背景/问题<a href="#背景问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>在项目中，使用RabbitMQ来做消息的异步分发，但是每隔一段时间都会出现发布订阅的报错， 服务重启后恢复。</p>
+<h3 id="问题分析">问题分析<a href="#问题分析" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>服务故障之后，首先查看了发布方和消费方的日志，发现了&quot;channel/connection is not open&quot;的错误日志。而为什么channel会被关闭，先来看看下面错误码：</p>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Reason</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>应用程序主动断开连接，网络异常被动断开连接</td>
+<td>连接中断</td>
+<td>连接关闭</td>
+</tr>
+<tr>
+<td>重新声明现有队列或具有不匹配属性的交换将失败</td>
+<td>406 PRECONDITION_FAILED</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>访问不允许用户访问的资源将失败</td>
+<td>403 ACCESS_REFUSED错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>绑定不存在的队列或不存在的交换将失败</td>
+<td>404 NOT_FOUND错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>从不存在的队列中使用将失败</td>
+<td>404 NOT_FOUND错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>发布到不退出的交换将失败</td>
+<td>404 NOT_FOUND错误</td>
+<td>协议异常</td>
+</tr>
+<tr>
+<td>从除声明连接以外的连接访问独占队列将失败</td>
+<td>405 RESOURCE_LOCKED</td>
+<td>协议异常</td>
+</tr>
+</tbody>
+</table>
+<p>得到结论：由于网络波动、生产者消费者使用不当会导致channel被关闭。对于AMQP的重连，社区里面其实已经做过了很多讨论。AMQP的主要开发者认为重连是业务的事情，所以不愿意在AMQP底层中加入更多自动重连的逻辑。</p>
+<p>没有重连的策略，导致消息无法消费订阅，服务中断，这在业务上是无法接受的。所以我们在业务SDK中，加入了重连的逻辑。</p>
+<h2 id="重连原理">重连原理<a href="#重连原理" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<pre><code class="language-cgo" data-lang="cgo">https://ms2008.github.io/2019/06/16/golang-rabbitmq/ 
+https://github.com/streadway/amqp/issues/133
+</code></pre><p>简而言之，channel.NotifyClose和connection.NotifyClose可以接收到错误消息，那就可以以此为重连的触发器。函数原型：func NotifyClose(c chan *Error) chan *Error。流程图如下：</p>
+<p><img src="/img/rabbitmq_reconnect.png" alt=""></p>
+<h2 id="结合code食用">结合code食用<a href="#结合code食用" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">AmqpClient</span>) <span style="color:#a6e22e">reconnect</span>() {
+	<span style="color:#66d9ef">for</span>{
+		<span style="color:#75715e">//延时启动，确保消费方订阅之后，再启动重连的监听
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">reconnectDetectDur</span>)
+		<span style="color:#66d9ef">select</span>{
+		<span style="color:#75715e">// 生产环境中没有观察到channel close err，目前只是做了简单的日志打印
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">channelNotify</span>:
+		    <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">notifyFunc</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;channel close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>))
+		    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;channel close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+		<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">connNotify</span>:
+		    <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">notifyFunc</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;connection close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>))
+            <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;connection close notify: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+            <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">isConnected</span> = <span style="color:#66d9ef">false</span>
+        }
+ 
+        <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">isConnected</span> {
+        	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumerFunc</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumeChannel</span>.<span style="color:#a6e22e">Cancel</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">queueName</span>, <span style="color:#66d9ef">true</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+        			<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;channel canclel err: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+        	}
+        	<span style="color:#75715e">// 限制重连接次数
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">cnt</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">cnt</span> &lt; <span style="color:#a6e22e">reconnectTimes</span>; <span style="color:#a6e22e">cnt</span><span style="color:#f92672">++</span> {
+                <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Connect</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">notifyFunc</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+                   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumerFunc</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+                      <span style="color:#75715e">// 消费者重连之后需要重新订阅
+</span><span style="color:#75715e"></span>                   	  <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Subscribe</span>(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">queueName</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">consumerFunc</span>)
+                      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+                   	     <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;reconnect subscribe error&#34;</span>)
+                      }
+                   <span style="color:#66d9ef">break</span>   
+                }
+                <span style="color:#75715e">// 重连时留一些时间间隔，后期最好可以做到指数退避算法
+</span><span style="color:#75715e"></span>                <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">reconnectDelay</span>)
+            }
+            <span style="color:#66d9ef">break</span>
+        }
+    }        
+}
+</code></pre></div><h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://ms2008.github.io/2019/06/16/golang-rabbitmq/">Golang RabbitMQ 故障排查一例</a></li>
+<li><a href="https://yeqown.xyz/2019/10/10/AMQP%E9%87%8D%E8%BF%9E%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0-Go/">AMQP重连机制实现 GO</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/mq">mq</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>882 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-09-13 12:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#背景问题">背景/问题</a>
+      <ul>
+        <li><a href="#问题分析">问题分析</a></li>
+      </ul>
+    </li>
+    <li><a href="#重连原理">重连原理</a></li>
+    <li><a href="#结合code食用">结合code食用</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://zygoo.github.io/posts/base/base64/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>Base64编码后出现换行符？</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>
