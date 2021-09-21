@@ -5,8 +5,112 @@
 		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
 		<generator>Hugo -- gohugo.io</generator>
 		<language>zh-hans</language>
-		<lastBuildDate>Mon, 13 Sep 2021 12:18:09 +0800</lastBuildDate>
+		<lastBuildDate>Wed, 15 Sep 2021 12:18:09 +0800</lastBuildDate>
 		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>RabbitMQ的Channel池</title>
+			<link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_channel_pool/</link>
+			<pubDate>Wed, 15 Sep 2021 12:18:09 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_channel_pool/</guid>
+			<description>Issue &amp;ldquo;channel id space exhausted&amp;rdquo;，部分消息无法进行正常地发布，这便是我们在生产环境中遇到的问题。虽然对connection进行了复用</description>
+			<content type="html"><![CDATA[<h2 id="issue">Issue</h2>
+<p>&ldquo;channel id space exhausted&rdquo;，部分消息无法进行正常地发布，这便是我们在生产环境中遇到的问题。虽然对connection进行了复用，
+但在高并发时，channel id还是耗尽了。在当前的AMQP的releases版本中，打开channel的最大默认值是2047。基于这个情况，我们决定复用channel, 构造一个channel pool。</p>
+<h2 id="方案预研">方案预研</h2>
+<h3 id="开源库">开源库</h3>
+<p>Java的组件中，早就引入了channel pool的概念。所以刚开始的思路，肯定是去找开源的库。
+<a href="https://github.com/houseofcat/turbocookedrabbit">houseofcat/turbocookedrabbit</a>是golang中star较高的一个库，
+但是看了源码之后，发现其并没有re-use channel, 跟我们的建设思路严重不符，遂抛弃之。对这个库有兴趣的朋友，可以看一下。</p>
+<h3 id="sqldriver的连接池">sql.driver的连接池</h3>
+<p>golang的&quot;database/sql&quot;是操作数据库时常用的包，这个包定义了一些sql操作的接口，具体的实现还是需要不同的数据库来实现。
+&ldquo;database/sql&quot;除了定义接口之外还有一个重要的功能：连接池，在其他网络通信时可以借鉴其实现。
+我们RabbitMQ的channel pool就是参考database connection pool来实现的，可以说是超级简化版的pool。虽然说channel和connection是完全不一样的概念，但是不妨碍我们学习上层的封装。</p>
+<h2 id="channel-pool的实现">channel pool的实现</h2>
+<h3 id="流程图">流程图</h3>
+<p><img src="/img/rabbitmq_channel_pool.jpg" alt=""></p>
+<h3 id="getchannelfrompool">getChannelFromPool</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">AmqpClient</span>) <span style="color:#a6e22e">getChannelFromPool</span>() (<span style="color:#f92672">*</span><span style="color:#a6e22e">channelHost</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#a6e22e">numFree</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">numFree</span> &gt; <span style="color:#ae81ff">0</span> {
+		<span style="color:#a6e22e">ch</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>[<span style="color:#ae81ff">0</span>]
+		copy(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>, <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>[<span style="color:#ae81ff">1</span>:])
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span> = <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>[:<span style="color:#a6e22e">numFree</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ch</span>, <span style="color:#66d9ef">nil</span>
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">numOpenChannel</span> <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">maxChannel</span> {
+		<span style="color:#a6e22e">req</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">channelRequest</span>)
+		<span style="color:#a6e22e">reqKey</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">nextRequestsKeyLocked</span>()
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">channelRequests</span>[<span style="color:#a6e22e">reqKey</span>] = <span style="color:#a6e22e">req</span>
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+		<span style="color:#a6e22e">ret</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">req</span>
+		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;error request&#34;</span>)
+		}
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ret</span>.<span style="color:#a6e22e">cHost</span>, <span style="color:#66d9ef">nil</span>
+	}
+
+	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">numOpenChannel</span><span style="color:#f92672">++</span>
+	<span style="color:#a6e22e">channel</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">conn</span>.<span style="color:#a6e22e">Channel</span>()
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">numOpenChannel</span><span style="color:#f92672">--</span>
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;create channel error&#34;</span>)
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">channelHost</span>{<span style="color:#a6e22e">channel</span>: <span style="color:#a6e22e">channel</span>, <span style="color:#a6e22e">isUse</span>: <span style="color:#66d9ef">false</span>}, <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div><ol>
+<li>首先通过len(m.freeChannel)判断pool中是否有空闲的channel, 如果存在空闲的channel, 直接返回给client，用于发布消息</li>
+<li>numOpenChannel已经建立或者等待建立的channel数，如果numOpenChannel&gt;maxChannel, 证明当前的存在的channel数已经到达设置的上限，client的请求被加入等待队列中，阻塞等待</li>
+<li>创建一个channel，首先将numOpenChannel加1，然后再创建连接。如果创建失败，将numOpenChannel减1</li>
+</ol>
+<h3 id="returnchannel">returnChannel</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">AmqpClient</span>) <span style="color:#a6e22e">returnChannel</span>(<span style="color:#a6e22e">cHost</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">channelHost</span>) {
+	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+	}()
+
+	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">channelRequests</span>)
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span> &gt; <span style="color:#ae81ff">0</span> {
+		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">req</span> <span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">channelRequest</span>
+		<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">reqKey</span> <span style="color:#66d9ef">uint64</span>
+		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">reqKey</span>, <span style="color:#a6e22e">req</span> = <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">channelRequests</span> {
+			<span style="color:#66d9ef">break</span>
+		}
+		delete(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">channelRequests</span>, <span style="color:#a6e22e">reqKey</span>)
+		<span style="color:#a6e22e">cHost</span>.<span style="color:#a6e22e">isUse</span> = <span style="color:#66d9ef">true</span>
+		<span style="color:#a6e22e">req</span> <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">channelRequest</span>{
+			<span style="color:#a6e22e">cHost</span>: <span style="color:#a6e22e">cHost</span>,
+		}
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">maxIdleChannel</span> &gt; len(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>) {
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span> = append(<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">freeChannel</span>, <span style="color:#a6e22e">cHost</span>)
+	} <span style="color:#66d9ef">else</span> {
+		<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cHost</span>.<span style="color:#a6e22e">channel</span>.<span style="color:#a6e22e">Close</span>()
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#66d9ef">return</span>
+		}
+	}
+	<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">numOpenChannel</span><span style="color:#f92672">--</span>
+}
+</code></pre></div><ol>
+<li>len(m.channelRequests)&gt;0, 证明队列中有等待的请求，channel re-use应该优先考虑等待队列</li>
+<li>注意，代码中使用map作为等待队列，range方法帮助我们随机选择一个等待的请求</li>
+<li>m.maxIdleChannel &gt; len(m.freeChannel)， 说明channel pool中连接池还有剩余空间，这时候可以将channel归还到pool</li>
+<li>如果channel pool已经满了，直接close该channel</li>
+</ol>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://www.jb51.net/article/147071.htm">golang sql连接池的实现方法详解</a></li>
+</ul>
+]]></content>
+		</item>
 		
 		<item>
 			<title>RabbitMQ断线重连的正确姿势</title>

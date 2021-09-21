@@ -6,7 +6,16 @@
     <description>Recent content on Zygoo&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
-    <lastBuildDate>Mon, 13 Sep 2021 12:18:09 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 15 Sep 2021 12:18:09 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RabbitMQ的Channel池</title>
+      <link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_channel_pool/</link>
+      <pubDate>Wed, 15 Sep 2021 12:18:09 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_channel_pool/</guid>
+      <description>Issue &amp;ldquo;channel id space exhausted&amp;rdquo;，部分消息无法进行正常地发布，这便是我们在生产环境中遇到的问题。虽然对connection进行了复用</description>
+    </item>
+    
     <item>
       <title>RabbitMQ断线重连的正确姿势</title>
       <link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_reconnect/</link>
