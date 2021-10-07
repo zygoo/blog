@@ -6,7 +6,16 @@
     <description>Recent content on Zygoo&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
-    <lastBuildDate>Wed, 15 Sep 2021 12:18:09 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 05 Oct 2021 10:18:06 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ginWrapper v1.0: 日志中间件</title>
+      <link>https://zygoo.github.io/posts/golang/context/ginwrapper-log/</link>
+      <pubDate>Tue, 05 Oct 2021 10:18:06 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/golang/context/ginwrapper-log/</guid>
+      <description>前言 日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。 在以前的一些工作经历</description>
+    </item>
+    
     <item>
       <title>RabbitMQ的Channel池</title>
       <link>https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_channel_pool/</link>

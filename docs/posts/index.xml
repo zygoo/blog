@@ -5,8 +5,129 @@
 		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
 		<generator>Hugo -- gohugo.io</generator>
 		<language>zh-hans</language>
-		<lastBuildDate>Wed, 15 Sep 2021 12:18:09 +0800</lastBuildDate>
+		<lastBuildDate>Tue, 05 Oct 2021 10:18:06 +0800</lastBuildDate>
 		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>ginWrapper v1.0: 日志中间件</title>
+			<link>https://zygoo.github.io/posts/golang/context/ginwrapper-log/</link>
+			<pubDate>Tue, 05 Oct 2021 10:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/golang/context/ginwrapper-log/</guid>
+			<description>前言 日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。 在以前的一些工作经历</description>
+			<content type="html"><![CDATA[<h2 id="前言">前言</h2>
+<p>日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。
+在以前的一些工作经历中，接触过两个log中间件，感觉它们存在一些缺陷：</p>
+<ol>
+<li>请求日志和响应日志分开打印，不利于数据的聚合，影响问题分析的速度</li>
+<li>将响应信息塞在gin的context上下文中，对代码有侵入性的改造</li>
+</ol>
+<p>在使用gin的过程中，希望总结出一个较优的实践，所以写下了这篇文章。</p>
+<h2 id="ginlog结构体定义">GinLog结构体定义</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GinLog</span> <span style="color:#66d9ef">struct</span> {
+     <span style="color:#a6e22e">FilterParams</span> []<span style="color:#66d9ef">string</span>   <span style="color:#75715e">// 需要过滤的参数，在日志中不做展示
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">EncryptParam</span> []<span style="color:#66d9ef">string</span>   <span style="color:#75715e">// 参数加密展示
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">SkipPaths</span>    []<span style="color:#66d9ef">string</span>   <span style="color:#75715e">// 跳过路径
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>首先定义了一个GinLog的结构体，里面了包含一些数据处理，过滤规则。在1.0版本中，暂时没有用到，后面可以补充。</p>
+<h2 id="重写接口方法">重写接口方法</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">bodyLogWriter</span>) <span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">ResponseWriter</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">bodyLogWriter</span>) <span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+    <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">s</span>)
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">ResponseWriter</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">s</span>)
+}
+</code></pre></div><h2 id="拼装参数信息">拼装参数信息</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getRequestInfo</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span> {
+	<span style="color:#a6e22e">params</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;GET&#34;</span> {
+		<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ContentType</span>() {
+		<span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;application/json&#34;</span>:
+			<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span>)
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
+			}
+			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">NopCloser</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">data</span>))
+			<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{}
+			<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">m</span>)
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#a6e22e">params</span>[<span style="color:#e6db74">&#34;raw&#34;</span>] = string(<span style="color:#a6e22e">data</span>)
+			} <span style="color:#66d9ef">else</span> {
+				<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span> {
+					<span style="color:#a6e22e">params</span>[<span style="color:#a6e22e">k</span>] = <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprint</span>(<span style="color:#a6e22e">v</span>)
+				}
+			}
+		<span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;application/x-www-form-urlencoded&#34;</span>:
+			<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">ParseForm</span>()
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Form</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Form</span> {
+					<span style="color:#a6e22e">params</span>[<span style="color:#a6e22e">k</span>] = <span style="color:#a6e22e">v</span>
+				}
+			}
+		}
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">params</span>
+}
+</code></pre></div><ul>
+<li>不同Content-Type, 获取参数信息的方式是不一样的，需要区别对待</li>
+<li>针对GET方法，目前采用的方式是打印raw query, 没有必须再单独获取参数信息</li>
+</ul>
+<h2 id="打印日志">打印日志</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">APILogger</span>(<span style="color:#a6e22e">ginLog</span> <span style="color:#a6e22e">GinLog</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+		<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+		<span style="color:#a6e22e">bodyLogWriter</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">bodyLogWriter</span>{
+			<span style="color:#a6e22e">body</span>:           <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBufferString</span>(<span style="color:#e6db74">&#34;&#34;</span>),
+			<span style="color:#a6e22e">ResponseWriter</span>: <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>,
+		}
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span> = <span style="color:#a6e22e">bodyLogWriter</span>
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+		<span style="color:#a6e22e">end</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+		<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">WithFields</span>(<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Fields</span>{
+			<span style="color:#e6db74">&#34;p&#34;</span>:              <span style="color:#a6e22e">bodyLogWriter</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">String</span>(),
+			<span style="color:#e6db74">&#34;q&#34;</span>:              <span style="color:#a6e22e">getRequestInfo</span>,
+			<span style="color:#e6db74">&#34;client_ip&#34;</span>:      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ClientIP</span>(),
+			<span style="color:#e6db74">&#34;status&#34;</span>:         <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>.<span style="color:#a6e22e">Status</span>(),
+			<span style="color:#e6db74">&#34;method&#34;</span>:         <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span>,
+			<span style="color:#e6db74">&#34;path&#34;</span>:           <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">FullPath</span>(),
+			<span style="color:#e6db74">&#34;raw_query&#34;</span>:      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Query</span>(),
+			<span style="color:#e6db74">&#34;user_agent&#34;</span>:     <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">UserAgent</span>(),
+			<span style="color:#e6db74">&#34;end&#34;</span>:            <span style="color:#a6e22e">end</span>.<span style="color:#a6e22e">Format</span>(<span style="color:#e6db74">&#34;2006/01/02-15:04:05&#34;</span>),
+			<span style="color:#e6db74">&#34;duration&#34;</span>:       <span style="color:#a6e22e">end</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">start</span>).<span style="color:#a6e22e">Seconds</span>(),
+			<span style="color:#e6db74">&#34;content_type&#34;</span>:   <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ContentType</span>(),
+			<span style="color:#e6db74">&#34;content_length&#34;</span>: <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">ContentLength</span>,
+			<span style="color:#e6db74">&#34;x-forward-for&#34;</span>:  <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">GetHeader</span>(<span style="color:#e6db74">&#34;X-Forward-For&#34;</span>),
+		}).<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;APILogger&#34;</span>)
+	}
+}
+</code></pre></div><p>需要使用完整代码的同学，请查看<a href="https://github.com/zygoo/ginWrapper/blob/master/log.go">github</a>。</p>
+<h2 id="举个栗子">举个栗子</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;ginWrapper&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/sirupsen/logrus&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">SetFormatter</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">JSONFormatter</span>{})
+	<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">SetOutput</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>)
+	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">APILogger</span>(<span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">GinLog</span>{})) <span style="color:#75715e">// 在注册路由之前引入中间件
+</span><span style="color:#75715e"></span>}
+</code></pre></div><h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://www.kancloud.cn/lhj0702/sockstack_gin/1805368">gin-日志使用</a></li>
+<li><a href="https://cloud.tencent.com/developer/article/1498038">go-gin-api 路由中间件 - 日志记录</a></li>
+<li><a href="https://www.cnblogs.com/lxmhhy/p/13518211.html">Gin中间件之日志模块</a></li>
+</ul>
+]]></content>
+		</item>
 		
 		<item>
 			<title>RabbitMQ的Channel池</title>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="ginWrapper v1.0: 日志中间件">
+<meta itemprop="description" content="前言 日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。 在以前的一些工作经历"><meta itemprop="datePublished" content="2021-10-05T10:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-10-05T10:18:06+08:00" />
+<meta itemprop="wordCount" content="650">
+<meta itemprop="keywords" content="golang," /><meta property="og:title" content="ginWrapper v1.0: 日志中间件" />
+<meta property="og:description" content="前言 日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。 在以前的一些工作经历" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/golang/context/ginwrapper-log/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-10-05T10:18:06+08:00" />
+<meta property="article:modified_time" content="2021-10-05T10:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="ginWrapper v1.0: 日志中间件"/>
+<meta name="twitter:description" content="前言 日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。 在以前的一些工作经历"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>ginWrapper v1.0: 日志中间件</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Oct 5, 2021</span></div>
+				<h1>ginWrapper v1.0: 日志中间件</h1>
+			</header>
+			<div class="content">
+				<h2 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>日志中间件是一个特别重要的模块，特别是在http的请求中，记录一次完整的request数据可以帮助我们快速定位问题。
+在以前的一些工作经历中，接触过两个log中间件，感觉它们存在一些缺陷：</p>
+<ol>
+<li>请求日志和响应日志分开打印，不利于数据的聚合，影响问题分析的速度</li>
+<li>将响应信息塞在gin的context上下文中，对代码有侵入性的改造</li>
+</ol>
+<p>在使用gin的过程中，希望总结出一个较优的实践，所以写下了这篇文章。</p>
+<h2 id="ginlog结构体定义">GinLog结构体定义<a href="#ginlog结构体定义" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GinLog</span> <span style="color:#66d9ef">struct</span> {
+     <span style="color:#a6e22e">FilterParams</span> []<span style="color:#66d9ef">string</span>   <span style="color:#75715e">// 需要过滤的参数，在日志中不做展示
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">EncryptParam</span> []<span style="color:#66d9ef">string</span>   <span style="color:#75715e">// 参数加密展示
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">SkipPaths</span>    []<span style="color:#66d9ef">string</span>   <span style="color:#75715e">// 跳过路径
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>首先定义了一个GinLog的结构体，里面了包含一些数据处理，过滤规则。在1.0版本中，暂时没有用到，后面可以补充。</p>
+<h2 id="重写接口方法">重写接口方法<a href="#重写接口方法" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">bodyLogWriter</span>) <span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span> []<span style="color:#66d9ef">byte</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">ResponseWriter</span>.<span style="color:#a6e22e">Write</span>(<span style="color:#a6e22e">b</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">bodyLogWriter</span>) <span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">error</span>) {
+    <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">s</span>)
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">ResponseWriter</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">s</span>)
+}
+</code></pre></div><h2 id="拼装参数信息">拼装参数信息<a href="#拼装参数信息" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getRequestInfo</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span> {
+	<span style="color:#a6e22e">params</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{}
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;GET&#34;</span> {
+		<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ContentType</span>() {
+		<span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;application/json&#34;</span>:
+			<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span>)
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">Close</span>()
+			}
+			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">NopCloser</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">data</span>))
+			<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{}
+			<span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">json</span>.<span style="color:#a6e22e">Unmarshal</span>(<span style="color:#a6e22e">data</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">m</span>)
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#a6e22e">params</span>[<span style="color:#e6db74">&#34;raw&#34;</span>] = string(<span style="color:#a6e22e">data</span>)
+			} <span style="color:#66d9ef">else</span> {
+				<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">m</span> {
+					<span style="color:#a6e22e">params</span>[<span style="color:#a6e22e">k</span>] = <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprint</span>(<span style="color:#a6e22e">v</span>)
+				}
+			}
+		<span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;application/x-www-form-urlencoded&#34;</span>:
+			<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">ParseForm</span>()
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Form</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">k</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Form</span> {
+					<span style="color:#a6e22e">params</span>[<span style="color:#a6e22e">k</span>] = <span style="color:#a6e22e">v</span>
+				}
+			}
+		}
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">params</span>
+}
+</code></pre></div><ul>
+<li>不同Content-Type, 获取参数信息的方式是不一样的，需要区别对待</li>
+<li>针对GET方法，目前采用的方式是打印raw query, 没有必须再单独获取参数信息</li>
+</ul>
+<h2 id="打印日志">打印日志<a href="#打印日志" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">APILogger</span>(<span style="color:#a6e22e">ginLog</span> <span style="color:#a6e22e">GinLog</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+		<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+		<span style="color:#a6e22e">bodyLogWriter</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">bodyLogWriter</span>{
+			<span style="color:#a6e22e">body</span>:           <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBufferString</span>(<span style="color:#e6db74">&#34;&#34;</span>),
+			<span style="color:#a6e22e">ResponseWriter</span>: <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>,
+		}
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span> = <span style="color:#a6e22e">bodyLogWriter</span>
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+		<span style="color:#a6e22e">end</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+		<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">WithFields</span>(<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Fields</span>{
+			<span style="color:#e6db74">&#34;p&#34;</span>:              <span style="color:#a6e22e">bodyLogWriter</span>.<span style="color:#a6e22e">body</span>.<span style="color:#a6e22e">String</span>(),
+			<span style="color:#e6db74">&#34;q&#34;</span>:              <span style="color:#a6e22e">getRequestInfo</span>,
+			<span style="color:#e6db74">&#34;client_ip&#34;</span>:      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ClientIP</span>(),
+			<span style="color:#e6db74">&#34;status&#34;</span>:         <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>.<span style="color:#a6e22e">Status</span>(),
+			<span style="color:#e6db74">&#34;method&#34;</span>:         <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span>,
+			<span style="color:#e6db74">&#34;path&#34;</span>:           <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">FullPath</span>(),
+			<span style="color:#e6db74">&#34;raw_query&#34;</span>:      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Query</span>(),
+			<span style="color:#e6db74">&#34;user_agent&#34;</span>:     <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">UserAgent</span>(),
+			<span style="color:#e6db74">&#34;end&#34;</span>:            <span style="color:#a6e22e">end</span>.<span style="color:#a6e22e">Format</span>(<span style="color:#e6db74">&#34;2006/01/02-15:04:05&#34;</span>),
+			<span style="color:#e6db74">&#34;duration&#34;</span>:       <span style="color:#a6e22e">end</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">start</span>).<span style="color:#a6e22e">Seconds</span>(),
+			<span style="color:#e6db74">&#34;content_type&#34;</span>:   <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ContentType</span>(),
+			<span style="color:#e6db74">&#34;content_length&#34;</span>: <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">ContentLength</span>,
+			<span style="color:#e6db74">&#34;x-forward-for&#34;</span>:  <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">GetHeader</span>(<span style="color:#e6db74">&#34;X-Forward-For&#34;</span>),
+		}).<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;APILogger&#34;</span>)
+	}
+}
+</code></pre></div><p>需要使用完整代码的同学，请查看<a href="https://github.com/zygoo/ginWrapper/blob/master/log.go">github</a>。</p>
+<h2 id="举个栗子">举个栗子<a href="#举个栗子" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;ginWrapper&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/sirupsen/logrus&#34;</span>
+	<span style="color:#e6db74">&#34;os&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">SetFormatter</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">JSONFormatter</span>{})
+	<span style="color:#a6e22e">logrus</span>.<span style="color:#a6e22e">SetOutput</span>(<span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>)
+	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">APILogger</span>(<span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">GinLog</span>{})) <span style="color:#75715e">// 在注册路由之前引入中间件
+</span><span style="color:#75715e"></span>}
+</code></pre></div><h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://www.kancloud.cn/lhj0702/sockstack_gin/1805368">gin-日志使用</a></li>
+<li><a href="https://cloud.tencent.com/developer/article/1498038">go-gin-api 路由中间件 - 日志记录</a></li>
+<li><a href="https://www.cnblogs.com/lxmhhy/p/13518211.html">Gin中间件之日志模块</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/golang">golang</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>650 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-10-05 10:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#ginlog结构体定义">GinLog结构体定义</a></li>
+    <li><a href="#重写接口方法">重写接口方法</a></li>
+    <li><a href="#拼装参数信息">拼装参数信息</a></li>
+    <li><a href="#打印日志">打印日志</a></li>
+    <li><a href="#举个栗子">举个栗子</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://zygoo.github.io/posts/mq/rabbitmq/rabbitmq_channel_pool/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>RabbitMQ的Channel池</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>
