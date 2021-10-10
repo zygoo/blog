@@ -5,8 +5,136 @@
 		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
 		<generator>Hugo -- gohugo.io</generator>
 		<language>zh-hans</language>
-		<lastBuildDate>Tue, 05 Oct 2021 10:18:06 +0800</lastBuildDate>
+		<lastBuildDate>Wed, 06 Oct 2021 10:18:06 +0800</lastBuildDate>
 		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>ginWrapper v1.0: 统一响应格式</title>
+			<link>https://zygoo.github.io/posts/golang/context/ginwrapper-response/</link>
+			<pubDate>Wed, 06 Oct 2021 10:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/golang/context/ginwrapper-response/</guid>
+			<description>前言 经历过前（web, 客户端，嵌入式，etc）后端联调的同学都知道，指定规范的交互协议是非常重要的。如果没有一定的规范，协议的格式必然是五花</description>
+			<content type="html"><![CDATA[<h2 id="前言">前言</h2>
+<ul>
+<li>经历过前（web, 客户端，嵌入式，etc）后端联调的同学都知道，指定规范的交互协议是非常重要的。如果没有一定的规范，协议的格式必然是五花八门的，前端的小伙伴需要适配各种消息结构，带来巨大的工作量</li>
+<li>在后端开发的方法论中，少写重复的代码一直是我们追求的目标。该模块的初衷也是帮我们快速构造符合协议的数据结构，减少代码量</li>
+<li>在http请求中，最常用的格式为json。所以在的设计中，只考虑了json。后期有需要，会考虑更多的Content-Type</li>
+<li>总结一下，我们目标是：1. 统一前后端数据交互格式 2. 抽象出公共代码，快速构造响应数据</li>
+</ul>
+<h2 id="响应结构体">响应结构体</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="color:#f92672">&#34;Result&#34;</span>: {
+    <span style="color:#f92672">&#34;Code&#34;</span>: <span style="color:#ae81ff">0</span>,
+    <span style="color:#f92672">&#34;Message&#34;</span>:<span style="color:#e6db74">&#34;success&#34;</span>
+  },
+  <span style="color:#f92672">&#34;Data&#34;</span>: <span style="color:#66d9ef">null</span>
+}
+</code></pre></div><ul>
+<li>code中传递的是业务码，0为成功，1为失败，还可以声明其他业务码，有兴趣的同学可以参照代码</li>
+<li>message为业务响应信息</li>
+<li>data用于传递业务数据</li>
+<li>前端的同学可以按照这个数据结构完成数据的解析</li>
+</ul>
+<h2 id="requestgo">request.go</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GinContext</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewGinContext</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">GinContext</span>{
+		<span style="color:#a6e22e">Context</span>: <span style="color:#a6e22e">c</span>,
+	}
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">GinContextFunc</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span>)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">WrapGinContext</span>(<span style="color:#a6e22e">handler</span> <span style="color:#a6e22e">GinContextFunc</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+		<span style="color:#a6e22e">handler</span>(<span style="color:#a6e22e">NewGinContext</span>(<span style="color:#a6e22e">ctx</span>))
+	}
+}
+</code></pre></div><h2 id="responsego">response.go</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ResponseInfo</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Code</span>    <span style="color:#66d9ef">int</span>    <span style="color:#e6db74">`json:&#34;code&#34;`</span>
+	<span style="color:#a6e22e">Message</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;message&#34;`</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Response</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Result</span> <span style="color:#a6e22e">ResponseInfo</span> <span style="color:#e6db74">`json:&#34;result&#34;`</span>
+	<span style="color:#a6e22e">Data</span>   <span style="color:#66d9ef">interface</span>{}  <span style="color:#e6db74">`json:&#34;data&#34;`</span>
+}
+
+<span style="color:#66d9ef">const</span> (
+	<span style="color:#a6e22e">CodeSuccess</span> = <span style="color:#ae81ff">0</span>
+	<span style="color:#a6e22e">CodeFailure</span> = <span style="color:#ae81ff">1</span>
+
+	<span style="color:#a6e22e">CodeBindError</span>        = <span style="color:#ae81ff">10</span>
+	<span style="color:#a6e22e">CodeRecordNotFound</span>   = <span style="color:#ae81ff">11</span>
+	<span style="color:#a6e22e">CodePermissionDenied</span> = <span style="color:#ae81ff">12</span>
+)
+
+<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">ResponseMap</span> = <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">int</span>]<span style="color:#a6e22e">ResponseInfo</span>{
+	<span style="color:#a6e22e">CodeSuccess</span>:   {<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusText</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>)},
+	<span style="color:#a6e22e">CodeFailure</span>:   {<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusText</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>)},
+	<span style="color:#a6e22e">CodeBindError</span>: {<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#e6db74">&#34;params bind error&#34;</span>},
+}
+
+<span style="color:#75715e">// SendResponse code为可变参数，code[0]为business code, code[1]为http code
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span>) <span style="color:#a6e22e">SendResponse</span>(<span style="color:#a6e22e">data</span> <span style="color:#66d9ef">interface</span>{}, <span style="color:#a6e22e">codes</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">int</span>) {
+	<span style="color:#a6e22e">httpCode</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>
+	<span style="color:#a6e22e">response</span>, <span style="color:#a6e22e">exist</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ResponseMap</span>[<span style="color:#a6e22e">codes</span>[<span style="color:#ae81ff">0</span>]]
+	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">exist</span> {
+		<span style="color:#a6e22e">response</span> = <span style="color:#a6e22e">ResponseMap</span>[<span style="color:#a6e22e">CodeFailure</span>]
+	}
+
+	<span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ResponseInfo</span>{<span style="color:#a6e22e">codes</span>[<span style="color:#ae81ff">0</span>], <span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">Message</span>}
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">codes</span>) &gt; <span style="color:#ae81ff">1</span> {
+		<span style="color:#a6e22e">httpCode</span> = <span style="color:#a6e22e">codes</span>[<span style="color:#ae81ff">1</span>]
+	} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">Code</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">20</span> {
+		<span style="color:#a6e22e">httpCode</span> = <span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">Code</span>
+	}
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">httpCode</span>, <span style="color:#a6e22e">Response</span>{<span style="color:#a6e22e">result</span>, <span style="color:#a6e22e">data</span>})
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span>) <span style="color:#a6e22e">OK</span>(<span style="color:#a6e22e">data</span> <span style="color:#66d9ef">interface</span>{}) {
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SendResponse</span>(<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">CodeSuccess</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span>) <span style="color:#a6e22e">BindFailure</span>() {
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">SendResponse</span>(<span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">CodeBindError</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span>) <span style="color:#a6e22e">Failure</span>(<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>, <span style="color:#a6e22e">Response</span>{
+		<span style="color:#a6e22e">Result</span>: <span style="color:#a6e22e">ResponseInfo</span>{
+			<span style="color:#a6e22e">Code</span>:    <span style="color:#a6e22e">CodeFailure</span>,
+			<span style="color:#a6e22e">Message</span>: <span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>(),
+		},
+		<span style="color:#a6e22e">Data</span>: <span style="color:#66d9ef">nil</span>,
+	})
+}
+</code></pre></div><h2 id="举个栗子">举个栗子</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;ginWrapper&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+	<span style="color:#e6db74">&#34;github.com/sirupsen/logrus&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">APILogger</span>(<span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">GinLog</span>{})) <span style="color:#75715e">// 在注册路由之前引入中间件
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/health&#34;</span>, <span style="color:#a6e22e">ginWrapper</span>.<span style="color:#a6e22e">WrapGinContext</span>(<span style="color:#a6e22e">healthHandler</span>))
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">healthHandler</span>(<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">GinContext</span>) {
+	<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">OK</span>(<span style="color:#66d9ef">nil</span>)
+}
+</code></pre></div><p>有需要完整代码的同学可以参考<a href="https://github.com/zygoo/ginWrapper/blob/master/request.go">github</a></p>
+]]></content>
+		</item>
 		
 		<item>
 			<title>ginWrapper v1.0: 日志中间件</title>

@@ -2,19 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://zygoo.github.io/posts/golang/context/ginwrapper-log/</loc>
-    <lastmod>2021-10-05T10:18:06+08:00</lastmod>
+    <loc>https://zygoo.github.io/posts/golang/context/ginwrapper-response/</loc>
+    <lastmod>2021-10-06T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/tags/golang/</loc>
-    <lastmod>2021-10-05T10:18:06+08:00</lastmod>
+    <lastmod>2021-10-06T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/posts/</loc>
-    <lastmod>2021-10-05T10:18:06+08:00</lastmod>
+    <lastmod>2021-10-06T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/tags/</loc>
-    <lastmod>2021-10-05T10:18:06+08:00</lastmod>
+    <lastmod>2021-10-06T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/</loc>
+    <lastmod>2021-10-06T10:18:06+08:00</lastmod>
+  </url><url>
+    <loc>https://zygoo.github.io/posts/golang/context/ginwrapper-log/</loc>
     <lastmod>2021-10-05T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/tags/mq/</loc>
