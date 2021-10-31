@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="golang中如何使用接口？">
+<meta itemprop="description" content="前言 刚开始的时候，看了100遍关于接口的基础知识，我还是不会用，还是不理解。 后面看了一些代码，已经大概可以理解接口的作用，但是我还是写不出优"><meta itemprop="datePublished" content="2021-10-29T10:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-10-29T10:18:06+08:00" />
+<meta itemprop="wordCount" content="1810">
+<meta itemprop="keywords" content="golang," /><meta property="og:title" content="golang中如何使用接口？" />
+<meta property="og:description" content="前言 刚开始的时候，看了100遍关于接口的基础知识，我还是不会用，还是不理解。 后面看了一些代码，已经大概可以理解接口的作用，但是我还是写不出优" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/golang/interface/simple-go-interface/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-10-29T10:18:06+08:00" />
+<meta property="article:modified_time" content="2021-10-29T10:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="golang中如何使用接口？"/>
+<meta name="twitter:description" content="前言 刚开始的时候，看了100遍关于接口的基础知识，我还是不会用，还是不理解。 后面看了一些代码，已经大概可以理解接口的作用，但是我还是写不出优"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>golang中如何使用接口？</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Oct 29, 2021</span></div>
+				<h1>golang中如何使用接口？</h1>
+			</header>
+			<div class="content">
+				<h2 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>刚开始的时候，看了100遍关于接口的基础知识，我还是不会用，还是不理解。</p>
+<p>后面看了一些代码，已经大概可以理解接口的作用，但是我还是写不出优雅的代码。</p>
+<p>对于OOP的思想完全是处于一种混沌的状态，go语言到底是如何表达这种思想的？接口的底层是怎么实现的？脑子里面有太多的疑问，所以把它们整理一下，希望有新的收获。</p>
+<h2 id="面向对象编程oop">面向对象编程（OOP）<a href="#面向对象编程oop" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>众所周知，面向对象编程（OOP）有三个特征：</p>
+<ul>
+<li>封装，struct</li>
+<li>继承，struct</li>
+<li>多态，interface</li>
+</ul>
+<p>在go语言中，封装和继承是通过struct来实现的，而多态则是通过接口（interface）来实现的，这篇blog重点来讲一讲interface的基础知识。</p>
+<h2 id="什么是接口">什么是接口？<a href="#什么是接口" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>其实接口的思想在计算机中很常见，那就是调用和实现解耦开来：</p>
+<ul>
+<li>底层只管实现，不需要关心到底是谁来用</li>
+<li>上层只管使用，不用管底层是怎么实现的，是谁实现的</li>
+</ul>
+<p>比如说print一个hello world，最终的接口就是在显示器能看到这些字符。用户只关心用了一个print功能，而最终是哪个显示器，是哪个硬件，用户是不会关心的。而对于操作系统，它实现了打印功能，它也不会关心具体是谁来用了这个功能。</p>
+<p>在go语言中，接口有两种含义：</p>
+<ul>
+<li>方法的集合</li>
+<li>数据类型</li>
+</ul>
+<h2 id="声明一个接口">声明一个接口<a href="#声明一个接口" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">//声明一个接口
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Human</span> <span style="color:#66d9ef">interface</span>{
+  <span style="color:#a6e22e">Say</span>()
+}
+<span style="color:#75715e">//定义两个类，这两个类分别实现了 Human 接口的 Say 方法
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">women</span> <span style="color:#66d9ef">struct</span> {
+}
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">man</span> <span style="color:#66d9ef">struct</span> {
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">women</span>) <span style="color:#a6e22e">Say</span>() {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;I&#39;m a women&#34;</span>)
+}
+<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">man</span>) <span style="color:#a6e22e">Say</span>() {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;I&#39;m a man&#34;</span>)
+}
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">w</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">women</span>)
+    <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Say</span>()
+    <span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">man</span>)
+    <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Say</span>()
+}
+</code></pre></div><p>如果一个具体类型实现了某个接口的所有方法，我们则称该具体类型实现了该接口。需要注意的是，必须是所有的方法。</p>
+<h2 id="接口类型">接口类型<a href="#接口类型" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>对于空接口来说，任何具体类型都实现了空接口，初学者很容易对空接口产生疑惑，举个例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Say</span>(<span style="color:#a6e22e">s</span> <span style="color:#66d9ef">interface</span>{}) {
+    <span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>}
+</code></pre></div><p>思考一下，在Say函数内部，s属于什么类型？对于初学者来说，容易认为s属于任意类型。其实s属于接口类型。s不是任意类型，却可以转换为任意类型。</p>
+<p>为什么呢？因为当我们往Say方法传入值的时候，go runtime会自动进行类型转换，将该值转换为接口类型的值。所有值在运行时都只会有一个类型，s的静态类型就是接口类型，即是interface{}。</p>
+<p>对于像go这种静态类型的语言，类型只是编译时候的概念。那go是如何实现接口值动态转换为任意类型值的呢？</p>
+<p>在go语言中，接口值有两部分组成，一个是指向该接口的具体类型的指针和另外一个指向该具体类型真实数据的指针。可以从runtime的源码查看interface的定义：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">iface</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">tab</span>  <span style="color:#f92672">*</span><span style="color:#a6e22e">itab</span>
+    <span style="color:#a6e22e">data</span> <span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">eface</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">_type</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">_type</span>
+    <span style="color:#a6e22e">data</span>  <span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span>
+}
+</code></pre></div><p>明白数据存储结构，我们可以避免一些坑，例如下面的代码是有错误的：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+    <span style="color:#e6db74">&#34;fmt&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">PrintAll</span>(<span style="color:#a6e22e">vals</span> []<span style="color:#66d9ef">interface</span>{}) {
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">val</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">vals</span> {
+        <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">val</span>)
+    }
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">names</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;pique&#34;</span>, <span style="color:#e6db74">&#34;zack&#34;</span>, <span style="color:#e6db74">&#34;paul&#34;</span>}
+    <span style="color:#a6e22e">PrintAll</span>(<span style="color:#a6e22e">names</span>)
+}
+</code></pre></div><p>编译会报错：cannot use names (type []string) as type []interface {} in argument to PrintAll，因为printAll的入参是一个接口类型，我们不能把string类型的值直接传入，再传入之前需要进行转换，或者printAll内部函数实现类型断言。下面是正确的写法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">names</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{<span style="color:#e6db74">&#34;pique&#34;</span>, <span style="color:#e6db74">&#34;zack&#34;</span>, <span style="color:#e6db74">&#34;paul&#34;</span>}
+    <span style="color:#a6e22e">vals</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">interface</span>{}, len(<span style="color:#a6e22e">names</span>))
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">v</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">names</span> {
+        <span style="color:#a6e22e">vals</span>[<span style="color:#a6e22e">i</span>] = <span style="color:#a6e22e">v</span>
+    }
+    <span style="color:#a6e22e">PrintAll</span>(<span style="color:#a6e22e">vals</span>)
+}
+</code></pre></div><h2 id="指针或值接收者的区别">指针或值接收者的区别<a href="#指针或值接收者的区别" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>指针接收者和值接受者的区别，是核心概念，我们再来理解一次。</p>
+<p>我们都知道，在go语言中所有的数据都是值传递。在实现接口方法中，如果全部使用指针接收者，或者值接收者，会很好理解。那如果是两者兼存呢？</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Human</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Say</span>()
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Man</span> <span style="color:#66d9ef">struct</span> {
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Woman</span> <span style="color:#66d9ef">struct</span> {
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#a6e22e">Man</span>) <span style="color:#a6e22e">Say</span>() {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;I&#39;m a man&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Woman</span>) <span style="color:#a6e22e">Say</span>() {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;I&#39;m a woman&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">humans</span> <span style="color:#f92672">:=</span> []<span style="color:#a6e22e">Human</span>{<span style="color:#a6e22e">Man</span>{}, <span style="color:#a6e22e">Woman</span>{}}
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">human</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">humans</span> {
+        <span style="color:#a6e22e">human</span>.<span style="color:#a6e22e">Say</span>()
+    }
+}
+</code></pre></div><p>上面的代码会报错：cannot use Woman literal (type Woman) as type Human in array or slice literal: Woman does not implement Human (Say method has pointer receiver)，提示Woman没有实现Human的接口。
+这是因为Woman实现Human接口时，定义的是指针接收者。但是我们在main方法中传入的一个woman的结构体，并不是一个指针，因此报错了。如果我们将main函数略微改变一下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#a6e22e">humans</span> <span style="color:#f92672">:=</span> []<span style="color:#a6e22e">Human</span>{<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Man</span>{}, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Woman</span>{}}
+    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">human</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">humans</span> {
+        <span style="color:#a6e22e">human</span>.<span style="color:#a6e22e">Say</span>()
+    }
+}
+</code></pre></div><p>注意到在main方法中分别传入了Man和Woman的指针，编译照常通过了。Man明明实现的是Human的值接收者，并不是指针接收者，为什么没有报错？</p>
+<p>原因就在于go语言中都是值传递，尽管传入的是Man指针，但是通过该指针我们可以找到其对应的值。go语言隐式地帮我们做了类型的转换，我们需要记住的就是：</p>
+<ul>
+<li>go语言中的指针类型可以获得其关联的任意值类型，但是反过来却不行</li>
+<li>道理很简单，一个具体的值可能有无数个指针指向它，但是一个指针只会指向一个具体的值</li>
+</ul>
+<h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/63219494">如何优雅的使用Go接口?</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/157786743">GoLang：OOP(面向对象)？坑！</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/golang">golang</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1810 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-10-29 10:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#面向对象编程oop">面向对象编程（OOP）</a></li>
+    <li><a href="#什么是接口">什么是接口？</a></li>
+    <li><a href="#声明一个接口">声明一个接口</a></li>
+    <li><a href="#接口类型">接口类型</a></li>
+    <li><a href="#指针或值接收者的区别">指针或值接收者的区别</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://zygoo.github.io/posts/golang/context/ginwrapper-response/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>ginWrapper v1.0: 统一响应格式</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>

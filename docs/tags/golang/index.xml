@@ -6,7 +6,16 @@
     <description>Recent content in golang on Zygoo&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
-    <lastBuildDate>Wed, 06 Oct 2021 10:18:06 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 29 Oct 2021 10:18:06 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>golang中如何使用接口？</title>
+      <link>https://zygoo.github.io/posts/golang/interface/simple-go-interface/</link>
+      <pubDate>Fri, 29 Oct 2021 10:18:06 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/golang/interface/simple-go-interface/</guid>
+      <description>前言 刚开始的时候，看了100遍关于接口的基础知识，我还是不会用，还是不理解。 后面看了一些代码，已经大概可以理解接口的作用，但是我还是写不出优</description>
+    </item>
+    
     <item>
       <title>ginWrapper v1.0: 统一响应格式</title>
       <link>https://zygoo.github.io/posts/golang/context/ginwrapper-response/</link>
