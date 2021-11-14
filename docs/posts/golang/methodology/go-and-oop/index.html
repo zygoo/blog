@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="golang中的OOP思想">
+<meta itemprop="description" content="前言 OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。 c&#43;&#43;的"><meta itemprop="datePublished" content="2021-11-01T08:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-11-01T08:18:06+08:00" />
+<meta itemprop="wordCount" content="2333">
+<meta itemprop="keywords" content="golang," /><meta property="og:title" content="golang中的OOP思想" />
+<meta property="og:description" content="前言 OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。 c&#43;&#43;的" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/golang/methodology/go-and-oop/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-11-01T08:18:06+08:00" />
+<meta property="article:modified_time" content="2021-11-01T08:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="golang中的OOP思想"/>
+<meta name="twitter:description" content="前言 OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。 c&#43;&#43;的"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>golang中的OOP思想</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Nov 1, 2021</span></div>
+				<h1>golang中的OOP思想</h1>
+			</header>
+			<div class="content">
+				<h2 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。</p>
+<h2 id="c的oop-class类和interface接口">c++的OOP: class类和interface接口<a href="#c的oop-class类和interface接口" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>c++， java的OOP(object orientation programming，面向对象编程)实现，一个必不可少的条件就是class或者interface接口的数据结构，这种数据结构拥有了OOP最核心的三个特性：</p>
+<ul>
+<li>封装，由类内的可见性来保障，语法关键字有public，protected，private</li>
+<li>继承，也就是我们常说的父类和子类，也可以被成为基类（Base Class）和派生类（Derived Class）。C++的底层有重载，重写甚至虚函数等语法来制定或者说约束整套继承的规则</li>
+<li>多态，是父类/基类或者说是接口类，用子类/派生类进行实例化之后呈现出子类/派生类的行为特征，在c++中，底层是通过虚函数的语法机制来做到的</li>
+</ul>
+<p>c++中只有类的概念，语法关键字是class或者struct，这两者实际作用是一致的：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">/* 
+</span><span style="color:#75715e">* struct结构，默认为public
+</span><span style="color:#75715e">*/</span>
+<span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Person</span> {
+    <span style="color:#75715e">// 类成员/类属性
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">name</span>;
+    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>;
+    <span style="color:#75715e">// 类函数/类方法
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Person</span>(<span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">_name</span>, <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">name</span>(<span style="color:#a6e22e">_name</span>), <span style="color:#a6e22e">age</span>(<span style="color:#a6e22e">_age</span>) {};
+    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>() { 
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">c_str</span>(), <span style="color:#a6e22e">age</span>); 
+    };
+};
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* class结构，默认为private
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">class</span> <span style="color:#a6e22e">Animal</span> {
+<span style="color:#75715e">// 类成员/类属性
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">name</span>;
+     <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>;
+<span style="color:#a6e22e">public</span>:
+<span style="color:#75715e">// 类函数/类方法
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">Animal</span>(<span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">_name</span>, <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">name</span>(<span style="color:#a6e22e">_name</span>), <span style="color:#a6e22e">age</span>(<span style="color:#a6e22e">_age</span>) {};
+     <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>() {
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">c_str</span>(), <span style="color:#a6e22e">age</span>);
+     }
+};
+</code></pre></div><p>python其实也只有类的概念，语法的关键字是class：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">class</span> <span style="color:#a6e22e">Animal</span>:
+	<span style="color:#a6e22e">def</span> <span style="color:#a6e22e">__init__</span>(<span style="color:#a6e22e">self</span>, <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">_age</span>):
+		<span style="color:#a6e22e">self</span>.<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">_name</span>
+		<span style="color:#a6e22e">self</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">_age</span>
+	<span style="color:#a6e22e">def</span> <span style="color:#a6e22e">show</span>(<span style="color:#a6e22e">self</span>):
+		print(<span style="color:#e6db74">&#34;name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">c_str</span>(), <span style="color:#a6e22e">age</span>)
+</code></pre></div><p>而java则同时有类和接口的概念，语法关键字分别为class和interface:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">/* 
+</span><span style="color:#75715e">* class 类结构
+</span><span style="color:#75715e">*/</span>
+<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">class</span> <span style="color:#a6e22e">Animal</span> {
+	<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">name</span>
+	<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>
+	
+	<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">Animal</span>(<span style="color:#a6e22e">String</span> <span style="color:#a6e22e">_name</span>, <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) {
+		<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">_name</span>
+		<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">_age</span>
+    }
+    
+    <span style="color:#a6e22e">public</span> <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>() {
+        <span style="color:#a6e22e">System</span>.<span style="color:#a6e22e">out</span>.println(<span style="color:#e6db74">&#34;name=&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;, age=&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">age</span>);
+    }
+}
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * interface 接口结构
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Animal</span> {
+	<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>(); 
+	<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Eat</span>();
+}
+</code></pre></div><p>对golang来说，虽然它有关键字struct和interface，但是和c++的struct语法不完全相同：</p>
+<ul>
+<li>golang支持在struct内声明&quot;类成员&quot;而不支持&quot;类方法&quot;</li>
+<li>golang支持在struct外部声明自己的类方法</li>
+</ul>
+<h2 id="golang怎么做oop">Golang怎么做OOP?<a href="#golang怎么做oop" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>习惯了c++, java和python用语法关键字&quot;class&quot;修饰类名，在类内定义类成员和类方法。外部可以通过实例化类的对象&quot;.&ldquo;或者&rdquo;-&gt;&ldquo;获得它的成员或者方法。那golang是怎么做到的类的数据结构的呢？</p>
+<h3 id="封装">封装<a href="#封装" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>golang中没有public, protected和private语法关键字，它是通过大小写字母来控制可见性的:</p>
+<ul>
+<li>如果常量，变量，类型，接口，结构，函数等名称是大写字母则代表能被其他包访问，其作用相当于public</li>
+<li>以非大写开头则不能被其他包访问，其作用相当于private, 当然，在同一个包内是可以访问的</li>
+</ul>
+<h3 id="继承">继承<a href="#继承" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>golang中没有像&rdquo;:&quot;, &ldquo;implements&rdquo;, &ldquo;extends&quot;等关键字，但是也可以做类似继承的功能。具体的做法如下，&ldquo;子类&quot;的字段嵌入&quot;父类&quot;即可, 代码如下:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Base</span> <span style="color:#66d9ef">struct</span>{
+	<span style="color:#a6e22e">one</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Derived</span> <span style="color:#66d9ef">struct</span>{
+	<span style="color:#a6e22e">Base</span>
+}
+</code></pre></div><p>实际上，上述的做法并不是真正的继承，而是匿名组合，本质还是一种组合的形式。只不过在调用的时候，可以直接通过实例化变量访问到父类的成员变量或者成员方法。</p>
+<h3 id="多态">多态<a href="#多态" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h3>
+<p>golang的多态依靠interface实现的，interface是一种duck type，被具体的实例类型实例化之后就可以表现出实例类型的行为特征，以下代码为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Animal</span> <span style="color:#66d9ef">interface</span> {
+	<span style="color:#a6e22e">Show</span>()
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Cat</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Cat</span>) <span style="color:#a6e22e">Show</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Cat: name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Dog</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Dog</span>)<span style="color:#a6e22e">Show</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Cat: name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">a1</span>, <span style="color:#a6e22e">a2</span> <span style="color:#a6e22e">Animal</span>
+	<span style="color:#a6e22e">a1</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Cat</span>{
+		<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;zy&#34;</span>,
+		<span style="color:#a6e22e">age</span>: <span style="color:#ae81ff">2</span>,
+    }
+    
+    <span style="color:#a6e22e">a2</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Dog</span>{
+    	<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;hmz&#34;</span>,
+    	<span style="color:#a6e22e">age</span>: <span style="color:#ae81ff">1</span>,
+    }
+    <span style="color:#a6e22e">a1</span>.<span style="color:#a6e22e">Show</span>()
+    <span style="color:#a6e22e">a2</span>.<span style="color:#a6e22e">Show</span>()
+}
+</code></pre></div><h2 id="匿名组合中的静态绑定的问题">匿名组合中的静态绑定的问题<a href="#匿名组合中的静态绑定的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">BaseBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseBird</span>) <span style="color:#a6e22e">Call</span>()  {
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">Add</span>()
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseBird</span>)<span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DerivedBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">BaseBird</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">DerivedBird</span>) <span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b1</span> <span style="color:#a6e22e">BaseBird</span>
+    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b2</span> <span style="color:#a6e22e">DerivedBird</span>
+
+    <span style="color:#a6e22e">b1</span> = <span style="color:#a6e22e">BaseBird</span>{<span style="color:#a6e22e">age</span>: <span style="color:#ae81ff">1</span>}
+    <span style="color:#a6e22e">b1</span>.<span style="color:#a6e22e">Cal</span>()
+
+    <span style="color:#a6e22e">b2</span> = <span style="color:#a6e22e">DerivedBird</span>{<span style="color:#a6e22e">BaseBird</span>{<span style="color:#ae81ff">1</span>}}
+    <span style="color:#a6e22e">b2</span>.<span style="color:#a6e22e">Cal</span>()
+}
+
+<span style="color:#75715e">//before add: age=1
+</span><span style="color:#75715e">//after add: age=2
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">//before add: age=1
+</span><span style="color:#75715e">//after add: age=2
+</span></code></pre></div><p>我们来尝试理解一下这个运行结果，其实也很好理解。在golang中，所谓&quot;继承&quot;的做法，实际上匿名组合。golang的组合就是静态绑定，或者说golang所有的struct方法都是静态绑定的。在上述的例子中，&ldquo;父类&quot;BaseBird的方法Call()调用的本方法Add()。
+虽然在所谓&quot;子类&quot;DerivedBird中实现了Add()，但是对于父类的call来说，在编译时期，就已经确定了他访问的就是自己的Add()。</p>
+<p>那为什么C++中可以做到通过this指针访问到子类的方法呢？那就是利用虚函数或者说是虚函数表，要知道，即使在C++的继承中，如果被调用的函数没有被virtual语法修饰为虚函数的话，最终访问的也还是父类的方法，如下面的例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">class</span> <span style="color:#a6e22e">BaseBird</span> {
+<span style="color:#a6e22e">public</span>:
+    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>;
+    <span style="color:#a6e22e">BaseBird</span>(<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">age</span>(<span style="color:#a6e22e">_age</span>) {};
+    <span style="color:#960050;background-color:#1e0010">~</span><span style="color:#a6e22e">BaseBird</span>() = <span style="color:#66d9ef">default</span>;
+    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Cal</span>() { <span style="color:#a6e22e">this</span><span style="color:#f92672">-</span>&gt;<span style="color:#a6e22e">Add</span>(); };
+    <span style="color:#75715e">// virtual void Add() { // 被调用的方法是否为虚函数，结果完全不一样
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Add</span>() {
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;before add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+        <span style="color:#a6e22e">age</span> <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;after add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+    };
+};
+<span style="color:#a6e22e">class</span> <span style="color:#a6e22e">DerivedBird</span> : <span style="color:#a6e22e">public</span> <span style="color:#a6e22e">BaseBird</span> {
+<span style="color:#a6e22e">public</span>:
+    <span style="color:#a6e22e">DerivedBird</span>(<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">BaseBird</span>(<span style="color:#a6e22e">_age</span>) {};
+    <span style="color:#960050;background-color:#1e0010">~</span><span style="color:#a6e22e">DerivedBird</span>() = <span style="color:#66d9ef">default</span>;
+    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Add</span>() {
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;before add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+        <span style="color:#a6e22e">age</span> <span style="color:#f92672">+=</span> <span style="color:#ae81ff">2</span>;
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;after add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+    };
+};
+
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>()
+{
+    <span style="color:#a6e22e">DerivedBird</span> <span style="color:#a6e22e">d</span>(<span style="color:#ae81ff">1</span>);
+    <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">Cal</span>();
+    <span style="color:#a6e22e">BaseBird</span> <span style="color:#a6e22e">b</span>(<span style="color:#ae81ff">1</span>);
+    <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">Cal</span>();
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><p>如果Add()被声明为虚函数，那么结果是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">afer</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">3</span>
+
+<span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">after</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">2</span>
+</code></pre></div><h2 id="解决静态绑定的问题">解决静态绑定的问题<a href="#解决静态绑定的问题" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>假设我们的真实业务场景中，确实需要这种设计：公共逻辑（父类）中有一部分需要执行到不同的具体类逻辑，我们看看实现的方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Bird</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Add</span>()
+}
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Cal</span>(<span style="color:#a6e22e">bird</span> <span style="color:#a6e22e">Bird</span>)  {
+    <span style="color:#a6e22e">bird</span>.<span style="color:#a6e22e">Add</span>()
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">BaseBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseBird</span>)<span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DerivedBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">BaseBird</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">DerivedBird</span>) <span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b1</span>, <span style="color:#a6e22e">b2</span> <span style="color:#a6e22e">Bird</span>
+    <span style="color:#a6e22e">b1</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">BaseBird</span>{<span style="color:#a6e22e">age</span>:<span style="color:#ae81ff">1</span>}
+    <span style="color:#a6e22e">b2</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">DerivedBird</span>{<span style="color:#a6e22e">BaseBird</span>{<span style="color:#a6e22e">age</span>:<span style="color:#ae81ff">1</span>}}
+    <span style="color:#a6e22e">Cal</span>(<span style="color:#a6e22e">b1</span>)
+    <span style="color:#a6e22e">Cal</span>(<span style="color:#a6e22e">b2</span>)
+}
+</code></pre></div><p>运行得到的结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">after</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">2</span>
+
+<span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">after</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">3</span>
+</code></pre></div><p>使用golang做OOP，需要抛弃c++和java的思维体系，使用新的语法+思维方式来开发。</p>
+<h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/157786743">GoLang：OOP(面向对象)？坑！</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/golang">golang</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>2333 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-11-01 08:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#c的oop-class类和interface接口">c++的OOP: class类和interface接口</a></li>
+    <li><a href="#golang怎么做oop">Golang怎么做OOP?</a>
+      <ul>
+        <li><a href="#封装">封装</a></li>
+        <li><a href="#继承">继承</a></li>
+        <li><a href="#多态">多态</a></li>
+      </ul>
+    </li>
+    <li><a href="#匿名组合中的静态绑定的问题">匿名组合中的静态绑定的问题</a></li>
+    <li><a href="#解决静态绑定的问题">解决静态绑定的问题</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="next-post" href="https://zygoo.github.io/posts/golang/interface/interface-and-reflect/">
+				<span class="post-nav-label"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>&nbsp;Newer</span><br><span>接口与反射</span>
+			</a>
+			<a class="prev-post" href="https://zygoo.github.io/posts/golang/interface/simple-go-interface/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>golang中如何使用接口？</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>

@@ -6,7 +6,25 @@
     <description>Recent content in golang on Zygoo&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-hans</language>
-    <lastBuildDate>Fri, 29 Oct 2021 10:18:06 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 10 Nov 2021 10:18:06 +0800</lastBuildDate><atom:link href="https://zygoo.github.io/tags/golang/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>接口与反射</title>
+      <link>https://zygoo.github.io/posts/golang/interface/interface-and-reflect/</link>
+      <pubDate>Wed, 10 Nov 2021 10:18:06 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/golang/interface/interface-and-reflect/</guid>
+      <description>前言</description>
+    </item>
+    
+    <item>
+      <title>golang中的OOP思想</title>
+      <link>https://zygoo.github.io/posts/golang/methodology/go-and-oop/</link>
+      <pubDate>Mon, 01 Nov 2021 08:18:06 +0800</pubDate>
+      
+      <guid>https://zygoo.github.io/posts/golang/methodology/go-and-oop/</guid>
+      <description>前言 OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。 c++的</description>
+    </item>
+    
     <item>
       <title>golang中如何使用接口？</title>
       <link>https://zygoo.github.io/posts/golang/interface/simple-go-interface/</link>

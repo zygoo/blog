@@ -5,8 +5,296 @@
 		<description>Recent content in Posts on Zygoo&#39;s Blog</description>
 		<generator>Hugo -- gohugo.io</generator>
 		<language>zh-hans</language>
-		<lastBuildDate>Fri, 29 Oct 2021 10:18:06 +0800</lastBuildDate>
+		<lastBuildDate>Wed, 10 Nov 2021 10:18:06 +0800</lastBuildDate>
 		<atom:link href="https://zygoo.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+		
+		<item>
+			<title>接口与反射</title>
+			<link>https://zygoo.github.io/posts/golang/interface/interface-and-reflect/</link>
+			<pubDate>Wed, 10 Nov 2021 10:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/golang/interface/interface-and-reflect/</guid>
+			<description>前言</description>
+			<content type="html"><![CDATA[<h2 id="前言">前言</h2>
+]]></content>
+		</item>
+		
+		<item>
+			<title>golang中的OOP思想</title>
+			<link>https://zygoo.github.io/posts/golang/methodology/go-and-oop/</link>
+			<pubDate>Mon, 01 Nov 2021 08:18:06 +0800</pubDate>
+			
+			<guid>https://zygoo.github.io/posts/golang/methodology/go-and-oop/</guid>
+			<description>前言 OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。 c++的</description>
+			<content type="html"><![CDATA[<h2 id="前言">前言</h2>
+<p>OOP是一个非常宏观的话题，我们今天只是希望可以有一些简单的总结，通过与其他语言的比较，看看golang中是如何表达OOP思想。</p>
+<h2 id="c的oop-class类和interface接口">c++的OOP: class类和interface接口</h2>
+<p>c++， java的OOP(object orientation programming，面向对象编程)实现，一个必不可少的条件就是class或者interface接口的数据结构，这种数据结构拥有了OOP最核心的三个特性：</p>
+<ul>
+<li>封装，由类内的可见性来保障，语法关键字有public，protected，private</li>
+<li>继承，也就是我们常说的父类和子类，也可以被成为基类（Base Class）和派生类（Derived Class）。C++的底层有重载，重写甚至虚函数等语法来制定或者说约束整套继承的规则</li>
+<li>多态，是父类/基类或者说是接口类，用子类/派生类进行实例化之后呈现出子类/派生类的行为特征，在c++中，底层是通过虚函数的语法机制来做到的</li>
+</ul>
+<p>c++中只有类的概念，语法关键字是class或者struct，这两者实际作用是一致的：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">/* 
+</span><span style="color:#75715e">* struct结构，默认为public
+</span><span style="color:#75715e">*/</span>
+<span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Person</span> {
+    <span style="color:#75715e">// 类成员/类属性
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">name</span>;
+    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>;
+    <span style="color:#75715e">// 类函数/类方法
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">Person</span>(<span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">_name</span>, <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">name</span>(<span style="color:#a6e22e">_name</span>), <span style="color:#a6e22e">age</span>(<span style="color:#a6e22e">_age</span>) {};
+    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>() { 
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">c_str</span>(), <span style="color:#a6e22e">age</span>); 
+    };
+};
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e">* class结构，默认为private
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">class</span> <span style="color:#a6e22e">Animal</span> {
+<span style="color:#75715e">// 类成员/类属性
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">name</span>;
+     <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>;
+<span style="color:#a6e22e">public</span>:
+<span style="color:#75715e">// 类函数/类方法
+</span><span style="color:#75715e"></span>     <span style="color:#a6e22e">Animal</span>(<span style="color:#a6e22e">std</span>::<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">_name</span>, <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">name</span>(<span style="color:#a6e22e">_name</span>), <span style="color:#a6e22e">age</span>(<span style="color:#a6e22e">_age</span>) {};
+     <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>() {
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">c_str</span>(), <span style="color:#a6e22e">age</span>);
+     }
+};
+</code></pre></div><p>python其实也只有类的概念，语法的关键字是class：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">class</span> <span style="color:#a6e22e">Animal</span>:
+	<span style="color:#a6e22e">def</span> <span style="color:#a6e22e">__init__</span>(<span style="color:#a6e22e">self</span>, <span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">_age</span>):
+		<span style="color:#a6e22e">self</span>.<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">_name</span>
+		<span style="color:#a6e22e">self</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">_age</span>
+	<span style="color:#a6e22e">def</span> <span style="color:#a6e22e">show</span>(<span style="color:#a6e22e">self</span>):
+		print(<span style="color:#e6db74">&#34;name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">name</span>.<span style="color:#a6e22e">c_str</span>(), <span style="color:#a6e22e">age</span>)
+</code></pre></div><p>而java则同时有类和接口的概念，语法关键字分别为class和interface:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">/* 
+</span><span style="color:#75715e">* class 类结构
+</span><span style="color:#75715e">*/</span>
+<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">class</span> <span style="color:#a6e22e">Animal</span> {
+	<span style="color:#66d9ef">string</span> <span style="color:#a6e22e">name</span>
+	<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>
+	
+	<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">Animal</span>(<span style="color:#a6e22e">String</span> <span style="color:#a6e22e">_name</span>, <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) {
+		<span style="color:#a6e22e">name</span> = <span style="color:#a6e22e">_name</span>
+		<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">_age</span>
+    }
+    
+    <span style="color:#a6e22e">public</span> <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>() {
+        <span style="color:#a6e22e">System</span>.<span style="color:#a6e22e">out</span>.println(<span style="color:#e6db74">&#34;name=&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">name</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;, age=&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">age</span>);
+    }
+}
+
+<span style="color:#75715e">/*
+</span><span style="color:#75715e"> * interface 接口结构
+</span><span style="color:#75715e"> */</span>
+<span style="color:#a6e22e">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">Animal</span> {
+	<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Show</span>(); 
+	<span style="color:#a6e22e">public</span> <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Eat</span>();
+}
+</code></pre></div><p>对golang来说，虽然它有关键字struct和interface，但是和c++的struct语法不完全相同：</p>
+<ul>
+<li>golang支持在struct内声明&quot;类成员&quot;而不支持&quot;类方法&quot;</li>
+<li>golang支持在struct外部声明自己的类方法</li>
+</ul>
+<h2 id="golang怎么做oop">Golang怎么做OOP?</h2>
+<p>习惯了c++, java和python用语法关键字&quot;class&quot;修饰类名，在类内定义类成员和类方法。外部可以通过实例化类的对象&quot;.&ldquo;或者&rdquo;-&gt;&ldquo;获得它的成员或者方法。那golang是怎么做到的类的数据结构的呢？</p>
+<h3 id="封装">封装</h3>
+<p>golang中没有public, protected和private语法关键字，它是通过大小写字母来控制可见性的:</p>
+<ul>
+<li>如果常量，变量，类型，接口，结构，函数等名称是大写字母则代表能被其他包访问，其作用相当于public</li>
+<li>以非大写开头则不能被其他包访问，其作用相当于private, 当然，在同一个包内是可以访问的</li>
+</ul>
+<h3 id="继承">继承</h3>
+<p>golang中没有像&rdquo;:&quot;, &ldquo;implements&rdquo;, &ldquo;extends&quot;等关键字，但是也可以做类似继承的功能。具体的做法如下，&ldquo;子类&quot;的字段嵌入&quot;父类&quot;即可, 代码如下:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Base</span> <span style="color:#66d9ef">struct</span>{
+	<span style="color:#a6e22e">one</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Derived</span> <span style="color:#66d9ef">struct</span>{
+	<span style="color:#a6e22e">Base</span>
+}
+</code></pre></div><p>实际上，上述的做法并不是真正的继承，而是匿名组合，本质还是一种组合的形式。只不过在调用的时候，可以直接通过实例化变量访问到父类的成员变量或者成员方法。</p>
+<h3 id="多态">多态</h3>
+<p>golang的多态依靠interface实现的，interface是一种duck type，被具体的实例类型实例化之后就可以表现出实例类型的行为特征，以下代码为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Animal</span> <span style="color:#66d9ef">interface</span> {
+	<span style="color:#a6e22e">Show</span>()
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Cat</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Cat</span>) <span style="color:#a6e22e">Show</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Cat: name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Dog</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">name</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Dog</span>)<span style="color:#a6e22e">Show</span>() {
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Cat: name=%s, age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">name</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">a1</span>, <span style="color:#a6e22e">a2</span> <span style="color:#a6e22e">Animal</span>
+	<span style="color:#a6e22e">a1</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Cat</span>{
+		<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;zy&#34;</span>,
+		<span style="color:#a6e22e">age</span>: <span style="color:#ae81ff">2</span>,
+    }
+    
+    <span style="color:#a6e22e">a2</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Dog</span>{
+    	<span style="color:#a6e22e">name</span>: <span style="color:#e6db74">&#34;hmz&#34;</span>,
+    	<span style="color:#a6e22e">age</span>: <span style="color:#ae81ff">1</span>,
+    }
+    <span style="color:#a6e22e">a1</span>.<span style="color:#a6e22e">Show</span>()
+    <span style="color:#a6e22e">a2</span>.<span style="color:#a6e22e">Show</span>()
+}
+</code></pre></div><h2 id="匿名组合中的静态绑定的问题">匿名组合中的静态绑定的问题</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">BaseBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseBird</span>) <span style="color:#a6e22e">Call</span>()  {
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">Add</span>()
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseBird</span>)<span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DerivedBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">BaseBird</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">DerivedBird</span>) <span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b1</span> <span style="color:#a6e22e">BaseBird</span>
+    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b2</span> <span style="color:#a6e22e">DerivedBird</span>
+
+    <span style="color:#a6e22e">b1</span> = <span style="color:#a6e22e">BaseBird</span>{<span style="color:#a6e22e">age</span>: <span style="color:#ae81ff">1</span>}
+    <span style="color:#a6e22e">b1</span>.<span style="color:#a6e22e">Cal</span>()
+
+    <span style="color:#a6e22e">b2</span> = <span style="color:#a6e22e">DerivedBird</span>{<span style="color:#a6e22e">BaseBird</span>{<span style="color:#ae81ff">1</span>}}
+    <span style="color:#a6e22e">b2</span>.<span style="color:#a6e22e">Cal</span>()
+}
+
+<span style="color:#75715e">//before add: age=1
+</span><span style="color:#75715e">//after add: age=2
+</span><span style="color:#75715e"></span>
+<span style="color:#75715e">//before add: age=1
+</span><span style="color:#75715e">//after add: age=2
+</span></code></pre></div><p>我们来尝试理解一下这个运行结果，其实也很好理解。在golang中，所谓&quot;继承&quot;的做法，实际上匿名组合。golang的组合就是静态绑定，或者说golang所有的struct方法都是静态绑定的。在上述的例子中，&ldquo;父类&quot;BaseBird的方法Call()调用的本方法Add()。
+虽然在所谓&quot;子类&quot;DerivedBird中实现了Add()，但是对于父类的call来说，在编译时期，就已经确定了他访问的就是自己的Add()。</p>
+<p>那为什么C++中可以做到通过this指针访问到子类的方法呢？那就是利用虚函数或者说是虚函数表，要知道，即使在C++的继承中，如果被调用的函数没有被virtual语法修饰为虚函数的话，最终访问的也还是父类的方法，如下面的例子：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">class</span> <span style="color:#a6e22e">BaseBird</span> {
+<span style="color:#a6e22e">public</span>:
+    <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">age</span>;
+    <span style="color:#a6e22e">BaseBird</span>(<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">age</span>(<span style="color:#a6e22e">_age</span>) {};
+    <span style="color:#960050;background-color:#1e0010">~</span><span style="color:#a6e22e">BaseBird</span>() = <span style="color:#66d9ef">default</span>;
+    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Cal</span>() { <span style="color:#a6e22e">this</span><span style="color:#f92672">-</span>&gt;<span style="color:#a6e22e">Add</span>(); };
+    <span style="color:#75715e">// virtual void Add() { // 被调用的方法是否为虚函数，结果完全不一样
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Add</span>() {
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;before add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+        <span style="color:#a6e22e">age</span> <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;after add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+    };
+};
+<span style="color:#a6e22e">class</span> <span style="color:#a6e22e">DerivedBird</span> : <span style="color:#a6e22e">public</span> <span style="color:#a6e22e">BaseBird</span> {
+<span style="color:#a6e22e">public</span>:
+    <span style="color:#a6e22e">DerivedBird</span>(<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">_age</span>) : <span style="color:#a6e22e">BaseBird</span>(<span style="color:#a6e22e">_age</span>) {};
+    <span style="color:#960050;background-color:#1e0010">~</span><span style="color:#a6e22e">DerivedBird</span>() = <span style="color:#66d9ef">default</span>;
+    <span style="color:#a6e22e">void</span> <span style="color:#a6e22e">Add</span>() {
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;before add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+        <span style="color:#a6e22e">age</span> <span style="color:#f92672">+=</span> <span style="color:#ae81ff">2</span>;
+        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;after add, age=%d\n&#34;</span>, <span style="color:#a6e22e">age</span>);
+    };
+};
+
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>()
+{
+    <span style="color:#a6e22e">DerivedBird</span> <span style="color:#a6e22e">d</span>(<span style="color:#ae81ff">1</span>);
+    <span style="color:#a6e22e">d</span>.<span style="color:#a6e22e">Cal</span>();
+    <span style="color:#a6e22e">BaseBird</span> <span style="color:#a6e22e">b</span>(<span style="color:#ae81ff">1</span>);
+    <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">Cal</span>();
+    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+}
+</code></pre></div><p>如果Add()被声明为虚函数，那么结果是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">afer</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">3</span>
+
+<span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">after</span> <span style="color:#a6e22e">add</span> <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">2</span>
+</code></pre></div><h2 id="解决静态绑定的问题">解决静态绑定的问题</h2>
+<p>假设我们的真实业务场景中，确实需要这种设计：公共逻辑（父类）中有一部分需要执行到不同的具体类逻辑，我们看看实现的方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Bird</span> <span style="color:#66d9ef">interface</span> {
+    <span style="color:#a6e22e">Add</span>()
+}
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Cal</span>(<span style="color:#a6e22e">bird</span> <span style="color:#a6e22e">Bird</span>)  {
+    <span style="color:#a6e22e">bird</span>.<span style="color:#a6e22e">Add</span>()
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">BaseBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">age</span> <span style="color:#66d9ef">int</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">BaseBird</span>)<span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DerivedBird</span> <span style="color:#66d9ef">struct</span> {
+    <span style="color:#a6e22e">BaseBird</span>
+}
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">this</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">DerivedBird</span>) <span style="color:#a6e22e">Add</span>()  {
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;before add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+    <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> = <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
+    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;after add: age=%d\n&#34;</span>, <span style="color:#a6e22e">this</span>.<span style="color:#a6e22e">age</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">b1</span>, <span style="color:#a6e22e">b2</span> <span style="color:#a6e22e">Bird</span>
+    <span style="color:#a6e22e">b1</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">BaseBird</span>{<span style="color:#a6e22e">age</span>:<span style="color:#ae81ff">1</span>}
+    <span style="color:#a6e22e">b2</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">DerivedBird</span>{<span style="color:#a6e22e">BaseBird</span>{<span style="color:#a6e22e">age</span>:<span style="color:#ae81ff">1</span>}}
+    <span style="color:#a6e22e">Cal</span>(<span style="color:#a6e22e">b1</span>)
+    <span style="color:#a6e22e">Cal</span>(<span style="color:#a6e22e">b2</span>)
+}
+</code></pre></div><p>运行得到的结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">after</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">2</span>
+
+<span style="color:#a6e22e">before</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">1</span>
+<span style="color:#a6e22e">after</span> <span style="color:#a6e22e">add</span>: <span style="color:#a6e22e">age</span>=<span style="color:#ae81ff">3</span>
+</code></pre></div><p>使用golang做OOP，需要抛弃c++和java的思维体系，使用新的语法+思维方式来开发。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/157786743">GoLang：OOP(面向对象)？坑！</a></li>
+</ul>
+]]></content>
+		</item>
 		
 		<item>
 			<title>golang中如何使用接口？</title>
