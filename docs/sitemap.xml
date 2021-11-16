@@ -2,16 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://zygoo.github.io/tags/golang/</loc>
-    <lastmod>2021-11-10T10:18:06+08:00</lastmod>
-  </url><url>
     <loc>https://zygoo.github.io/posts/</loc>
-    <lastmod>2021-11-10T10:18:06+08:00</lastmod>
+    <lastmod>2021-11-11T10:18:06+08:00</lastmod>
+  </url><url>
+    <loc>https://zygoo.github.io/tags/prometheus/</loc>
+    <lastmod>2021-11-11T10:18:06+08:00</lastmod>
+  </url><url>
+    <loc>https://zygoo.github.io/posts/miontor/prometheus/prometheus-concept/</loc>
+    <lastmod>2021-11-11T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/tags/</loc>
-    <lastmod>2021-11-10T10:18:06+08:00</lastmod>
+    <lastmod>2021-11-11T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/</loc>
+    <lastmod>2021-11-11T10:18:06+08:00</lastmod>
+  </url><url>
+    <loc>https://zygoo.github.io/tags/golang/</loc>
     <lastmod>2021-11-10T10:18:06+08:00</lastmod>
   </url><url>
     <loc>https://zygoo.github.io/posts/golang/interface/interface-and-reflect/</loc>

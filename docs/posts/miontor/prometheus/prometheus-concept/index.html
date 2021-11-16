@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-hans">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta itemprop="name" content="prometheus系列-快速入门">
+<meta itemprop="description" content="前言 对于Prometheus，我们一般有两种理解： 指的是Prometheus本身，是一个时序数据库 另外一种则是Prometheus生态圈，指"><meta itemprop="datePublished" content="2021-11-11T10:18:06+08:00" />
+<meta itemprop="dateModified" content="2021-11-11T10:18:06+08:00" />
+<meta itemprop="wordCount" content="1305">
+<meta itemprop="keywords" content="prometheus," /><meta property="og:title" content="prometheus系列-快速入门" />
+<meta property="og:description" content="前言 对于Prometheus，我们一般有两种理解： 指的是Prometheus本身，是一个时序数据库 另外一种则是Prometheus生态圈，指" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://zygoo.github.io/posts/miontor/prometheus/prometheus-concept/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2021-11-11T10:18:06+08:00" />
+<meta property="article:modified_time" content="2021-11-11T10:18:06+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="prometheus系列-快速入门"/>
+<meta name="twitter:description" content="前言 对于Prometheus，我们一般有两种理解： 指的是Prometheus本身，是一个时序数据库 另外一种则是Prometheus生态圈，指"/>
+
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+	<link rel="manifest" href="/site.webmanifest">
+	<link rel="mask-icon" href="/safari-pinned-tab.svg" color="">
+	<link rel="shortcut icon" href="/favicon.ico">
+
+	<title>prometheus系列-快速入门</title>
+	<link rel="stylesheet" href="https://zygoo.github.io/css/style.min.037b6ee8f8c1baab6a3d0a9da11c3ff18a7552471f16c59fd98538d5ce99208b.css" integrity="sha256-A3tu6PjBuqtqPQqdoRw/8Yp1UkcfFsWf2YU41c6ZIIs=" crossorigin="anonymous">
+	
+</head>
+
+<body id="page">
+	
+	<header id="site-header" class="animated slideInUp">
+		<div class="hdr-wrapper section-inner">
+			<div class="hdr-left">
+				<div class="site-branding">
+					<a href="https://zygoo.github.io/">Zygoo&#39;s Blog</a>
+				</div>
+				<nav class="site-nav hide-in-mobile">
+					
+				<a href="https://zygoo.github.io/posts/">Posts</a>
+				<a href="https://zygoo.github.io/tags/">Tags</a>
+				<a href="https://zygoo.github.io/about/">About</a>
+
+				</nav>
+			</div>
+			<div class="hdr-right hdr-icons">
+				<button id="toc-btn" class="hdr-btn desktop-only-ib" title="Table of Contents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-list"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3" y2="6"></line><line x1="3" y1="12" x2="3" y2="12"></line><line x1="3" y1="18" x2="3" y2="18"></line></svg></button><span class="hdr-social hide-in-mobile"><a href="https://github.com/zygoo" target="_blank" rel="noopener me" title="Github"><svg xmlns="http://www.w3.org/2000/svg" class="feather" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg></a></span><button id="menu-btn" class="hdr-btn" title="Menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></button>
+			</div>
+		</div>
+	</header>
+	<div id="mobile-menu" class="animated fast">
+		<ul>
+			<li><a href="https://zygoo.github.io/posts/">Posts</a></li>
+			<li><a href="https://zygoo.github.io/tags/">Tags</a></li>
+			<li><a href="https://zygoo.github.io/about/">About</a></li>
+		</ul>
+	</div>
+
+
+	<main class="site-main section-inner animated fadeIn faster">
+		<article class="thin">
+			<header class="post-header">
+				<div class="post-meta"><span>Nov 11, 2021</span></div>
+				<h1>prometheus系列-快速入门</h1>
+			</header>
+			<div class="content">
+				<h2 id="前言">前言<a href="#前言" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>对于Prometheus，我们一般有两种理解：</p>
+<ol>
+<li>指的是Prometheus本身，是一个时序数据库</li>
+<li>另外一种则是Prometheus生态圈，指的是整体的监控报警的生态圈和解决方案：prometheus + grafana + altermanager</li>
+</ol>
+<p>Prometheus在2016年加入CNCF(Cloud Native Computing Foundation), 是继k8s之后的第二个托管项目，其主要特点如下：</p>
+<ol>
+<li>多维度的数据模型：由<strong>指标名</strong>和<strong>键/值</strong>，对标签标识的时间序列数据来组成多纬的数据模型</li>
+<li>灵活的查询语言：在prometheus中使用灵活的查询语言PromSQL来进行查询</li>
+<li>不依赖分布式存储：prometheus单个节点也可以直接工作，支持本地存储（TSDB）和远程存储的模式</li>
+<li>服务端采集数据：prometheus基于http pull的方式去对不同的端采集时间序列数据</li>
+<li>客户端主动推送：支持通过PushGateWay组件主动推送时间序列数据</li>
+</ol>
+<h2 id="prometheus生态组件">Prometheus生态组件<a href="#prometheus生态组件" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Prometheus生态由多个组件共同组成，其中许多组件是可以根据实际情况选择的，并且绝大部分由go语言编写，在部署和构建上比较方便，如下：</p>
+<ol>
+<li>Prometheus Server：Prometheus服务器，用于收集指标和存储时间序列数据，并提供以一系列的查询和设置接口</li>
+<li>Client Library： 客户端库，用于帮助需要监控采集的服务暴露metrics handler和Prometheus server。例如我们经常在gin直接调用promhttp暴露一个metrics接口</li>
+<li>Push Gateway：推送网关，Prometheus服务端仅支持http pull的 采集方式，但是有一些值存在的时间短，Prometheus来之前pull就结束了。或者说该类指标，是需要客户端自行上报的，这时候就可以采用Push GateWay的方式。客户端将指标push到Push GateWay，再由Prometheus Server从Push GateWay上pull</li>
+<li>Exporters：用于暴露已有的第三方服务（HAProxy，StatsD，Graphite）的metrics给Prometheus Server</li>
+<li>AlterManager：用于处理告警，从Prometheus Server端接收到alters后，会进行去重，分组，然后路由到对应的receiver，发出报警</li>
+<li>Support Tools：各种支持工具</li>
+</ol>
+<h2 id="prometheus-整体流程">Prometheus 整体流程<a href="#prometheus-整体流程" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Prometheus的整体架构和生态组件，如下图所示：
+<img src="/img/prometheus_architecture.png" alt=""></p>
+<ul>
+<li>Prometheus Server通过从监控目标中拉取监控指标（或者通过推送网关来拉取）</li>
+<li>它在本地存储所有抓取到的数据，并对这些数据执行一系列规则，以汇总和记录现有数据的新时间序列或者生成告警</li>
+<li>通过Grafana或者其他工具来实现监控数据的可视化</li>
+</ul>
+<h2 id="利用时序数据库来存储prometheus的数据">利用时序数据库来存储Prometheus的数据<a href="#利用时序数据库来存储prometheus的数据" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<p>Prometheus所有采集的指标数据在默认情况下，都保存在本地所内置的时间序列数据库中（TSDB）当中。目前在行业中比较出名，流行度较高的时序数据库如下：</p>
+<p><img src="/img/time_series_db.jpeg" alt=""></p>
+<p>时序数据库，简单来说就是将数据按照时间的顺序排列，它具有唯一性和可排序性，因此在Prometheus的Metrics中即使只添加一个标签，也会造成破坏，也就是说它不再是原来的那个时序数据了。关于这个破坏性，我们后面再来细说。</p>
+<h2 id="参考">参考<a href="#参考" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a></h2>
+<ul>
+<li><a href="https://eddycjy.com/posts/prometheus/2020-05-16-startup/">Prometheus 快速入门</a></li>
+</ul>
+
+			</div>
+			<hr class="post-end">
+			<footer class="post-info">
+				<p>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg><span class="tag"><a href="https://zygoo.github.io/tags/prometheus">prometheus</a></span>
+				</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>1305 Words</p>
+				<p><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>2021-11-11 10:18</p>
+			</footer>
+		</article>
+		<aside id="toc">
+			<div class="toc-title">Table of Contents</div>
+			<nav id="TableOfContents">
+  <ul>
+    <li><a href="#前言">前言</a></li>
+    <li><a href="#prometheus生态组件">Prometheus生态组件</a></li>
+    <li><a href="#prometheus-整体流程">Prometheus 整体流程</a></li>
+    <li><a href="#利用时序数据库来存储prometheus的数据">利用时序数据库来存储Prometheus的数据</a></li>
+    <li><a href="#参考">参考</a></li>
+  </ul>
+</nav>
+		</aside>
+		<div class="post-nav thin">
+			<a class="prev-post" href="https://zygoo.github.io/posts/golang/interface/interface-and-reflect/">
+				<span class="post-nav-label">Older&nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span><br><span>接口与反射</span>
+			</a>
+		</div>
+		<div id="comments" class="thin">
+</div>
+	</main>
+
+	<footer id="site-footer" class="section-inner thin animated fadeIn faster">
+		<p>&copy; 2021 <a href="https://zygoo.github.io/"></a></p>
+		<p>
+			Made with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> &#183; Theme <a href="https://github.com/Track3/hermit" target="_blank" rel="noopener">Hermit</a> &#183; <a href="https://zygoo.github.io/posts/index.xml" target="_blank" title="rss"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-rss"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1"></circle></svg></a>
+		</p>
+	</footer>
+
+
+
+	<script src="https://zygoo.github.io/js/bundle.min.7d8545daa55d62427355498dd8da13f98ff79a7938ce7d2a5e2ae1ec0de3beb8.js" integrity="sha256-fYVF2qVdYkJzVUmN2NoT+Y/3mnk4zn0qXirh7A3jvrg=" crossorigin="anonymous"></script>
+	
+
+</body>
+
+</html>
